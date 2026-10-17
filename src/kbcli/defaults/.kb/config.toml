@@ -1,0 +1,101 @@
+# 知识库配置契约 v1；由 kbcli v0.1.1 加载并执行。
+[vault]
+name = "个人知识库"
+schema_version = 1
+timezone = "Asia/Shanghai"
+
+[paths]
+inbox = "inbox"
+projects = "projects"
+notes = "notes"
+sources = "sources"
+tasks = "tasks"
+daily = "daily"
+assets = "assets"
+
+[discovery]
+roots = ["inbox", "projects", "notes", "sources", "tasks", "daily"]
+exclude = ["README.md", "**/README.md", "docs/**", ".kb/**", ".agents/**", ".hermes/**", ".obsidian/**", "AGENTS.md"]
+# roots 限定业务范围；目录说明、规范、skill 与示例不进入业务查询。
+
+[schemas]
+directory = ".kb/schemas"
+default = "note-v1"
+# 选择顺序：显式参数 > 文档声明 > 路径规则 > 目录绑定 > 默认规范。
+# 最终选择必须属于路径规则或目录绑定的 allowed；覆盖选择不绕过 allowed。
+# 声明了 schema 的记录完整校验；strict=false 仅允许未声明规范的旧笔记降级。
+
+[[schemas.bindings]]
+root = "inbox"
+schema = "note-v1"
+allowed = ["note-v1", "source-v1"]
+strict = false
+[[schemas.bindings]]
+root = "notes"
+schema = "note-v1"
+allowed = ["note-v1"]
+strict = false
+[[schemas.bindings]]
+root = "sources"
+schema = "source-v1"
+allowed = ["source-v1"]
+strict = true
+[[schemas.bindings]]
+root = "projects"
+schema = "note-v1"
+allowed = ["note-v1", "project-v1"]
+strict = false
+[[schemas.bindings]]
+root = "tasks"
+schema = "task-v1"
+allowed = ["task-v1"]
+strict = true
+[[schemas.bindings]]
+root = "daily"
+schema = "daily-v1"
+allowed = ["daily-v1"]
+strict = false
+
+[[schemas.path_rules]]
+root = "projects"
+basename = "项目概览.md"
+schema = "project-v1"
+allowed = ["project-v1"]
+strict = true
+# basename 对该 root 下各层子目录生效。重叠路径规则须报歧义，不能依赖列表顺序。
+
+[templates]
+note = ".kb/templates/note.md"
+source = ".kb/templates/source.md"
+project = ".kb/templates/project.md"
+task = ".kb/templates/task.md"
+daily = ".kb/templates/daily.md"
+
+[review]
+field = "review_status"
+roots = ["inbox", "sources", "notes", "projects", "tasks", "daily"]
+ai_default = "pending"
+on_content_change = "pending"
+# created_by 只说明创建者；AI 修改人工文档也按实际操作来源重置审核。
+
+[review.task_completion]
+actor = "authenticated_user"
+to_status = "done"
+allowed_fields = ["status", "completed_at", "updated_at"]
+preserve_review = true
+record_operation = true
+# 用户直接完成待办无需再次复核；不批准既有 pending，也不清除 needs_changes/rejected。
+# 若同一请求改了标题、描述等审核内容，普通内容修改规则仍生效。
+
+[review.content_hash]
+algorithm = "sha256"
+projection_version = 1
+exclude_fields = ["review_status", "reviewed_by", "reviewed_at", "reviewed_content_hash", "updated_at"]
+task_exclude_fields = ["status", "completed_at"]
+# 正文和其他业务字段参与内容哈希；任务完成记录写操作日志，不自动追加正文。
+# 全文件哈希用于并发控制；审核内容哈希用于审核有效性，不能互相替代。
+
+[sync]
+backend = "git"
+remote = "origin"
+# 上游分支使用实际 Git 配置；本文件不会创建 origin 或执行同步。

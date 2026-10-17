@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kb:schema:note-v1",
+  "title": "note v1",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "urn:kb:schema:common-v1"
+    },
+    {
+      "type": "object",
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "schema": {
+          "const": "note-v1"
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "reviewed",
+            "archived"
+          ]
+        }
+      }
+    }
+  ]
+}

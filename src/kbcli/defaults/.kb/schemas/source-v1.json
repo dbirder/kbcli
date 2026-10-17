@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kb:schema:source-v1",
+  "title": "source v1",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "urn:kb:schema:common-v1"
+    },
+    {
+      "type": "object",
+      "required": [
+        "source_type",
+        "capture_status",
+        "review_status"
+      ],
+      "properties": {
+        "schema": {
+          "const": "source-v1"
+        },
+        "source_type": {
+          "enum": [
+            "web",
+            "book",
+            "document",
+            "video",
+            "audio",
+            "other"
+          ]
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://"
+        },
+        "capture_status": {
+          "enum": [
+            "pending",
+            "complete",
+            "partial",
+            "failed"
+          ]
+        },
+        "capture_note": {
+          "type": "string"
+        },
+        "captured_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "original_path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$",
+          "description": "知识库根目录相对路径；存在性、路径归一化与符号链接边界由整体检查确认"
+        },
+        "original_sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "source_type": {
+            "const": "web"
+          }
+        },
+        "required": [
+          "source_type"
+        ]
+      },
+      "then": {
+        "required": [
+          "url"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "capture_status": {
+            "enum": [
+              "partial",
+              "failed"
+            ]
+          }
+        },
+        "required": [
+          "capture_status"
+        ]
+      },
+      "then": {
+        "required": [
+          "capture_note"
+        ],
+        "properties": {
+          "capture_note": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "capture_status": {
+            "const": "complete"
+          }
+        },
+        "required": [
+          "capture_status"
+        ]
+      },
+      "then": {
+        "required": [
+          "captured_at",
+          "capture_note"
+        ],
+        "properties": {
+          "capture_note": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ],
+  "dependentRequired": {
+    "original_sha256": [
+      "original_path"
+    ]
+  }
+}

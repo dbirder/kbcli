@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kb:schema:common-v1",
+  "title": "通用元数据 v1",
+  "type": "object",
+  "required": [
+    "id",
+    "title"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "minLength": 1
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_by": {
+      "enum": [
+        "human",
+        "ai"
+      ]
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "uniqueItems": true
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "uniqueItems": true
+    },
+    "review_status": {
+      "enum": [
+        "pending",
+        "approved",
+        "needs_changes",
+        "rejected"
+      ]
+    },
+    "reviewed_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reviewed_content_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "created_by": {
+            "const": "ai"
+          }
+        },
+        "required": [
+          "created_by"
+        ]
+      },
+      "then": {
+        "required": [
+          "review_status"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "review_status": {
+            "const": "approved"
+          }
+        },
+        "required": [
+          "review_status"
+        ]
+      },
+      "then": {
+        "required": [
+          "reviewed_by",
+          "reviewed_at"
+        ]
+      }
+    }
+  ],
+  "additionalProperties": true
+}

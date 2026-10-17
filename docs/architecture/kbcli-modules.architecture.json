@@ -1,0 +1,409 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "kbcli v0.1.1 软件模块",
+    "subtitle": "CLI / HTTP / skill 已实现 · Python 共用核心 · Git 显式同步 · MCP 为后续可选",
+    "viewBox": [
+      1530,
+      1030
+    ]
+  },
+  "components": [
+    {
+      "id": "cli",
+      "type": "frontend",
+      "label": "CLI / JSON · 已实现",
+      "sublabel": "cli.py · client.py · commands.py",
+      "pos": [
+        60,
+        350
+      ],
+      "size": [
+        200,
+        70
+      ],
+      "tag": "本地调用或 --server"
+    },
+    {
+      "id": "http",
+      "type": "frontend",
+      "label": "HTTP API · 已实现",
+      "sublabel": "api.py · FastAPI · Bearer",
+      "pos": [
+        60,
+        560
+      ],
+      "size": [
+        200,
+        70
+      ],
+      "tag": "本机测试通过 · NAS 待验收"
+    },
+    {
+      "id": "mcp",
+      "type": "frontend",
+      "label": "MCP · 未实现",
+      "sublabel": "后续工具发现与调用适配",
+      "pos": [
+        60,
+        770
+      ],
+      "size": [
+        200,
+        70
+      ],
+      "tag": "虚线表示后续适配"
+    },
+    {
+      "id": "skill",
+      "type": "external",
+      "label": "knowledge-maintain",
+      "sublabel": "构建 · 安装 · 更新 · 回滚",
+      "pos": [
+        60,
+        120
+      ],
+      "size": [
+        200,
+        70
+      ],
+      "tag": "已实现 · Hermes 待联调"
+    },
+    {
+      "id": "core",
+      "type": "backend",
+      "label": "共用核心 · 已实现",
+      "sublabel": "查询 · 校验 · 受控写入 · 状态",
+      "pos": [
+        430,
+        350
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "tag": "operations / status / state"
+    },
+    {
+      "id": "schema",
+      "type": "security",
+      "label": "规范与模板 · 已实现",
+      "sublabel": "vault.py · JSON Schema · 模板",
+      "pos": [
+        430,
+        120
+      ],
+      "size": [
+        240,
+        70
+      ],
+      "tag": "路径绑定 · 引用与格式校验"
+    },
+    {
+      "id": "contracts",
+      "type": "database",
+      "label": "随文件同步的 .kb/",
+      "sublabel": "config.toml · JSON 规范 · 模板",
+      "pos": [
+        860,
+        120
+      ],
+      "size": [
+        210,
+        70
+      ]
+    },
+    {
+      "id": "files",
+      "type": "database",
+      "label": "Markdown 与原始资料",
+      "sublabel": "笔记 · 待办 · 链接 · 来源",
+      "pos": [
+        860,
+        350
+      ],
+      "size": [
+        210,
+        80
+      ],
+      "tag": "解析用原文 · 写入需哈希"
+    },
+    {
+      "id": "search",
+      "type": "backend",
+      "label": "解析 / 索引 / 检索",
+      "sublabel": "indexing.py · 中文分析 · 属性",
+      "pos": [
+        860,
+        560
+      ],
+      "size": [
+        210,
+        80
+      ],
+      "tag": "周期核验 · --fresh · 已实现"
+    },
+    {
+      "id": "sqlite",
+      "type": "database",
+      "label": "库外状态与 SQLite",
+      "sublabel": "FTS5 / BM25 · 操作日志 · 锁",
+      "pos": [
+        1240,
+        560
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "tag": "索引可重建 · 日志用于恢复"
+    },
+    {
+      "id": "sync",
+      "type": "backend",
+      "label": "Git 同步 · 已实现",
+      "sublabel": "git_sync.py · 显式 sync",
+      "pos": [
+        430,
+        770
+      ],
+      "size": [
+        240,
+        70
+      ],
+      "tag": "共用锁 · 分叉人工整合"
+    },
+    {
+      "id": "remote",
+      "type": "cloud",
+      "label": "知识库 Git 远端",
+      "sublabel": "Gitee 等原生 Git 服务",
+      "pos": [
+        860,
+        770
+      ],
+      "size": [
+        210,
+        70
+      ],
+      "tag": "无自动同步或自动合并"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "适配层 与 skill 编排",
+      "wraps": [
+        "cli",
+        "http",
+        "mcp",
+        "skill"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "共用核心与每端数据 模块并不代表独立服务",
+      "wraps": [
+        "core",
+        "schema",
+        "contracts",
+        "files",
+        "search",
+        "sqlite",
+        "sync",
+        "remote"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "skill",
+      "to": "cli",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "调用工具",
+      "labelAt": [
+        160,
+        255
+      ],
+      "variant": "security"
+    },
+    {
+      "from": "cli",
+      "to": "core",
+      "variant": "emphasis"
+    },
+    {
+      "from": "http",
+      "to": "core",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          345,
+          595
+        ],
+        [
+          345,
+          390
+        ]
+      ],
+      "variant": "emphasis"
+    },
+    {
+      "from": "mcp",
+      "to": "core",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          315,
+          805
+        ],
+        [
+          315,
+          390
+        ]
+      ],
+      "variant": "dashed"
+    },
+    {
+      "from": "schema",
+      "to": "core",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "variant": "security"
+    },
+    {
+      "from": "contracts",
+      "to": "schema",
+      "fromSide": "left",
+      "toSide": "right",
+      "label": "规则 / 模板",
+      "variant": "security"
+    },
+    {
+      "from": "core",
+      "to": "files",
+      "label": "读写 / check",
+      "variant": "emphasis"
+    },
+    {
+      "from": "core",
+      "to": "search",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "via": [
+        [
+          550,
+          600
+        ]
+      ],
+      "label": "检索 / 刷新",
+      "labelAt": [
+        720,
+        585
+      ]
+    },
+    {
+      "from": "files",
+      "to": "search",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "磁盘变化",
+      "labelAt": [
+        965,
+        500
+      ],
+      "variant": "dashed"
+    },
+    {
+      "from": "search",
+      "to": "sqlite",
+      "label": "事务 / 查询"
+    },
+    {
+      "from": "core",
+      "to": "sync",
+      "fromSide": "left",
+      "toSide": "top",
+      "via": [
+        [
+          385,
+          390
+        ],
+        [
+          385,
+          735
+        ],
+        [
+          550,
+          735
+        ]
+      ],
+      "variant": "dashed",
+      "label": "显式调用",
+      "labelAt": [
+        385,
+        675
+      ]
+    },
+    {
+      "from": "sync",
+      "to": "remote",
+      "label": "pull / push",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "统一命令与角色",
+      "items": [
+        "Typer CLI 默认 JSON；远端 CLI 通过 /api/command 白名单调用同一核心，无任意 shell。",
+        "本地 actor 为来源声明；HTTP 根据用户与 agent 的不同 Bearer 令牌确定角色。"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "规范与模板已落地",
+      "items": [
+        "显式参数 → 文档声明 → 路径规则 → 目录绑定 → 默认值，最终受 allowed 限制。",
+        "tasks、sources 和项目概览严格校验；非严格范围的旧笔记允许正文检索并报告提示。"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "检索与引用可追溯",
+      "items": [
+        "中文 bigram + FTS5/BM25，属性筛选；literal/grep 核验原文，返回行号与全文件哈希。",
+        "fresh 只覆盖本地文件；索引与 Git 分别报告状态，合成实验不代表真实语料性能。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "索引与只读状态",
+      "items": [
+        "serve/watch 使用周期全哈希核验，无文件事件监听；新增、删除和改名更新索引。",
+        "status 只观察已有状态；缓存不可读时返回未知，不创建空索引或自动恢复操作日志。"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "受控写入与 Git 边界",
+      "items": [
+        "operations.py 负责预期哈希、锁、原子写入与持久日志；用户完成任务保留原审核状态。",
+        "写入不自动提交；sync 只快进，工具提交需日志证明；未知修改与分叉留待人工处理。"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "发布与后续阶段",
+      "items": [
+        "完整 skill 包携带代码、锁定依赖及文件哈希；安装器在库外准备环境，支持更新回滚。",
+        "当前待补 NAS 部署、Chrome 插件和 Hermes 联调；MCP、批准入口和自动 Git 调度未实现。"
+      ]
+    }
+  ]
+}

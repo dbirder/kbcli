@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kbcli"
+version = "0.1.1"
+description = "File-first Markdown knowledge-base CLI and local API"
+requires-python = ">=3.12"
+dependencies = [
+  "typer>=0.16,<1",
+  "ruamel.yaml>=0.18,<1",
+  "markdown-it-py>=3,<5",
+  "jsonschema>=4.22,<5",
+  "referencing>=0.35,<1",
+  "platformdirs>=4,<5",
+  "filelock>=3.16,<4",
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.30,<1",
+]
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "httpx>=0.27,<1", "ruff>=0.12,<1"]
+
+[project.scripts]
+kbcli = "kbcli.cli:main"
+
+[tool.hatch.build]
+exclude = [
+  ".DS_Store", "**/.DS_Store", "._*", "**/._*", "**/__MACOSX/**",
+  "**/__pycache__/**", "*.py[cod]", "**/*.py[cod]",
+  "**/.pytest_cache/**", "**/.ruff_cache/**", "**/.venv/**",
+  "*.swp", "**/*.swp", "*.swo", "**/*.swo", "*~", "**/*~",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/kbcli"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]

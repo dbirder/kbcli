@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kb:schema:daily-v1",
+  "title": "daily v1",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "urn:kb:schema:common-v1"
+    },
+    {
+      "type": "object",
+      "required": [
+        "date"
+      ],
+      "properties": {
+        "schema": {
+          "const": "daily-v1"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,429 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "个人知识库部署架构 · v0.1.1",
+    "subtitle": "核心与 HTTP 已实现 · NAS 待部署验收 · Chrome 待开发 · Hermes 待联调",
+    "viewBox": [
+      1520,
+      1040
+    ]
+  },
+  "components": [
+    {
+      "id": "chrome",
+      "type": "frontend",
+      "label": "Chrome 插件 · 待开发",
+      "sublabel": "待办 · 最近笔记 · 状态",
+      "pos": [
+        70,
+        220
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "tag": "后续通过 HTTPS 调用 API"
+    },
+    {
+      "id": "desktop",
+      "type": "frontend",
+      "label": "Obsidian + kbcli",
+      "sublabel": "手工编辑 · 本地 CLI · 显式同步",
+      "pos": [
+        70,
+        470
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "tag": "CLI 已实现"
+    },
+    {
+      "id": "local",
+      "type": "database",
+      "label": "电脑知识库工作副本",
+      "sublabel": "Markdown + .kb/ + skill",
+      "pos": [
+        70,
+        700
+      ],
+      "size": [
+        190,
+        70
+      ]
+    },
+    {
+      "id": "localindex",
+      "type": "database",
+      "label": "电脑本地 SQLite 索引",
+      "sublabel": "FTS5 · 标签 / 属性 · 原文位置",
+      "pos": [
+        370,
+        470
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "tag": "独立重建 · 不进入 Git"
+    },
+    {
+      "id": "remote",
+      "type": "cloud",
+      "label": "知识库 Git 远端",
+      "sublabel": "既定使用 Gitee · 与源码仓库分开",
+      "pos": [
+        370,
+        850
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "tag": "设备直接连接同一远端"
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "kbcli serve · 已实现",
+      "sublabel": "HTTP · 用户 / agent Bearer",
+      "pos": [
+        690,
+        220
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "tag": "NAS 托管与 HTTPS 待部署"
+    },
+    {
+      "id": "core",
+      "type": "backend",
+      "label": "kbcli 共用核心",
+      "sublabel": "检索 · 校验 · 任务 · 受控写入",
+      "pos": [
+        990,
+        220
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "tag": "已实现 · NAS 统一服务调用"
+    },
+    {
+      "id": "files",
+      "type": "database",
+      "label": "NAS 知识库工作副本",
+      "sublabel": "notes / projects / tasks / .kb",
+      "pos": [
+        1280,
+        220
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "tag": "部署时持久化并独立备份"
+    },
+    {
+      "id": "agent",
+      "type": "external",
+      "label": "Hermes + skill · 待联调",
+      "sublabel": "skill 与远端 CLI 已实现",
+      "pos": [
+        990,
+        80
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "tag": "通过 API · MCP 未实现"
+    },
+    {
+      "id": "indexer",
+      "type": "backend",
+      "label": "索引周期核验 · 已实现",
+      "sublabel": "serve / watch · 全哈希对账",
+      "pos": [
+        990,
+        470
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "tag": "默认间隔 3 秒 · 不同步 Git"
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "NAS 库外本地状态",
+      "sublabel": "SQLite 索引 · 操作日志 · 锁",
+      "pos": [
+        1280,
+        470
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "tag": "索引可重建 · 日志需保留"
+    },
+    {
+      "id": "git",
+      "type": "backend",
+      "label": "Git 显式同步 · 已实现",
+      "sublabel": "fetch · 快进 · 受控提交 · push",
+      "pos": [
+        990,
+        850
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "tag": "无后台调度 · 分叉人工整合"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "工作电脑及其他设备 每端独立目录和索引",
+      "wraps": [
+        "chrome",
+        "desktop",
+        "local",
+        "localindex"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "NAS 目标部署环境 服务已有实现，持续运行与端到端待验收",
+      "wraps": [
+        "api",
+        "core",
+        "files",
+        "agent",
+        "indexer",
+        "db",
+        "git"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "chrome",
+      "to": "api",
+      "label": "HTTPS + 身份认证",
+      "variant": "emphasis"
+    },
+    {
+      "from": "api",
+      "to": "core",
+      "variant": "emphasis"
+    },
+    {
+      "from": "core",
+      "to": "files",
+      "label": "受控读写",
+      "variant": "emphasis"
+    },
+    {
+      "from": "agent",
+      "to": "api",
+      "fromSide": "left",
+      "toSide": "top",
+      "variant": "security",
+      "via": [
+        [
+          785,
+          115
+        ]
+      ],
+      "label": "远端 CLI",
+      "labelAt": [
+        785,
+        170
+      ]
+    },
+    {
+      "from": "desktop",
+      "to": "local",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "编辑 / CLI",
+      "labelAt": [
+        165,
+        625
+      ]
+    },
+    {
+      "from": "desktop",
+      "to": "localindex"
+    },
+    {
+      "from": "local",
+      "to": "localindex",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "via": [
+        [
+          465,
+          735
+        ]
+      ],
+      "variant": "dashed",
+      "label": "落盘后更新",
+      "labelAt": [
+        465,
+        625
+      ]
+    },
+    {
+      "from": "local",
+      "to": "remote",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "via": [
+        [
+          165,
+          885
+        ]
+      ],
+      "label": "pull / push",
+      "variant": "dashed",
+      "labelAt": [
+        260,
+        865
+      ]
+    },
+    {
+      "from": "remote",
+      "to": "git",
+      "label": "pull / push",
+      "variant": "dashed"
+    },
+    {
+      "from": "core",
+      "to": "git",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "variant": "dashed",
+      "via": [
+        [
+          1085,
+          350
+        ],
+        [
+          945,
+          350
+        ],
+        [
+          945,
+          820
+        ],
+        [
+          1085,
+          820
+        ]
+      ],
+      "label": "显式 sync",
+      "labelAt": [
+        945,
+        685
+      ]
+    },
+    {
+      "from": "core",
+      "to": "indexer",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "刷新 / 等待",
+      "labelAt": [
+        1085,
+        385
+      ]
+    },
+    {
+      "from": "indexer",
+      "to": "db",
+      "label": "增量索引"
+    },
+    {
+      "from": "core",
+      "to": "db",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          1220,
+          255
+        ],
+        [
+          1220,
+          505
+        ]
+      ],
+      "label": "查询",
+      "labelAt": [
+        1220,
+        385
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "当前已有核心与 API",
+      "items": [
+        "CLI、HTTP 和远端 CLI 复用同一 Python 核心，提供稳定 JSON 结果与受控文件操作。",
+        "电脑使用本地副本；NAS 调用方建议通过 --server 使用同一服务，部署仍待验收。"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "规范与 skill 随文件管理",
+      "items": [
+        ".kb/config.toml 绑定 note/source/project/task/daily 规范；模板生成，Schema 校验。",
+        "完整 skill 包含程序与锁定依赖清单；Python 环境、安装登记和凭据留在库外。"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "索引 fresh 与远端同步分开",
+      "items": [
+        "serve/watch 周期核验本地文件；search --fresh 检查本地哈希，不访问 Git 远端。",
+        "检索返回路径、行号和文件哈希；状态区分结构、来源获取、审核有效性和任务执行。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "跨设备使用显式 Git 同步",
+      "items": [
+        "电脑与 NAS 各自连接知识库远端；其他设备只能获得已提交、已推送且已拉取的内容。",
+        "写入不自动提交推送；sync --commit-tools 仅处理日志可证明的工具修改，无后台调度。"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "写入与任务完成规则",
+      "items": [
+        "预期哈希、文件锁、原子替换与操作日志已实现；未知人工修改和分叉停止整合。",
+        "用户完成待办保留审核状态，无需再次人工复核；agent 令牌不能冒充用户完成。"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "仍待交付的场景",
+      "items": [
+        "NAS 容器或系统服务托管、HTTPS、重启恢复及多设备持续运行需集成验收。",
+        "Chrome 插件待开发，Hermes 待真实流程联调；MCP 和人工批准入口尚未实现。"
+      ]
+    }
+  ]
+}

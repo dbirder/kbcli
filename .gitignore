@@ -1,0 +1,17 @@
+.DS_Store
+._*
+__MACOSX/
+*.swp
+*.swo
+*~
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+dist/
+*.egg-info/
+.env
+.env.*
+.coverage
+htmlcov/

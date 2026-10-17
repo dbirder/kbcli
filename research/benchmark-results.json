@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-01",
+  "environment": {
+    "python": "3.14.7",
+    "sqlite": "3.53.4",
+    "architecture": "arm64",
+    "os": "macOS"
+  },
+  "corpus": {
+    "synthetic_note_count": 10000,
+    "chunk_count": 50000,
+    "raw_utf8_MiB": 27.57,
+    "database_MiB": 143.04,
+    "topic_count": 20
+  },
+  "boundary_tests": {
+    "同步": {
+      "unicode61": 0,
+      "trigram": 0,
+      "pretokenized_bigram": 1
+    },
+    "同步冲突": {
+      "unicode61": 0,
+      "trigram": 1,
+      "pretokenized_bigram": 1
+    }
+  },
+  "index_build_seconds": {
+    "bigram": 1.14,
+    "trigram": 0.76
+  },
+  "warm_query_samples_per_case": 20,
+  "warm_query_ms": {
+    "bigram_bm25_top20": {
+      "p50": 1.65,
+      "p95": 3.06
+    },
+    "trigram_bm25_top20": {
+      "p50": 1.37,
+      "p95": 1.6
+    },
+    "bigram_filtered_in_subquery_top20": {
+      "p50": 525.3,
+      "p95": 791.97
+    },
+    "bigram_filtered_materialized_top20": {
+      "p50": 3.26,
+      "p95": 4.87
+    },
+    "two_char_like_full_count": {
+      "p50": 54.48,
+      "p95": 56.42
+    }
+  },
+  "limitations": [
+    "Synthetic repetitive corpus, not real Markdown files",
+    "No file scanning, Markdown parsing, Chinese word segmentation, process startup, sync, or indexing-freshness cost measured",
+    "Index build timings exclude corpus generation and normal-table insertion",
+    "LIKE count and ranked top-20 retrieval are different operations",
+    "Only 20 warm samples per query case; tail-latency estimates are preliminary",
+    "No retrieval relevance evaluation",
+    "Database includes raw text, pretokenized fields, and both bigram and trigram indices"
+  ]
+}

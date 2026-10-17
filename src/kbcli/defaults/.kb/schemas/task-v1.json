@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kb:schema:task-v1",
+  "title": "task v1",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "urn:kb:schema:common-v1"
+    },
+    {
+      "type": "object",
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "schema": {
+          "const": "task-v1"
+        },
+        "status": {
+          "enum": [
+            "todo",
+            "doing",
+            "done",
+            "cancelled"
+          ]
+        },
+        "due": {
+          "type": "string",
+          "format": "date"
+        },
+        "completed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  ]
+}

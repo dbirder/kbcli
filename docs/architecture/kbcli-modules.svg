@@ -1,0 +1,198 @@
+<svg viewBox="0 0 1530 1030" role="img" aria-label="kbcli v0.1.1 软件模块 — CLI / HTTP / skill 已实现 · Python 共用核心 · Git 显式同步 · MCP 为后续可选 (architecture diagram)" width="1530" height="1030" xmlns="http://www.w3.org/2000/svg"><style>@font-face { font-family: 'JetBrains Mono'; font-weight: 400; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 500; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 600; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 700; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
+svg { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', 'Liberation Mono', 'Noto Sans Mono CJK SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', monospace; }
+:root, [data-theme="dark"] { --bg: #020617; --grid: #1e293b; --text: #ffffff; --text-muted: #94a3b8; --text-dim: #475569; --text-faint: #7d8da1; --panel: rgba(15, 23, 42, 0.5); --panel-border: #1e293b; --lane-fill: rgba(15, 23, 42, 0.22); --lane-stroke: #334155; --arrow: #64748b; --arrow-emphasis: #34d399; --mask: #0f172a; --frontend-fill: rgba(8, 51, 68, 0.4); --frontend-stroke: #22d3ee; --backend-fill: rgba(6, 78, 59, 0.4); --backend-stroke: #34d399; --database-fill: rgba(76, 29, 149, 0.4); --database-stroke: #a78bfa; --cloud-fill: rgba(120, 53, 15, 0.3); --cloud-stroke: #fbbf24; --security-fill: rgba(136, 19, 55, 0.4); --security-stroke: #fb7185; --messagebus-fill: rgba(251, 146, 60, 0.3); --messagebus-stroke: #fb923c; --external-fill: rgba(30, 41, 59, 0.5); --external-stroke: #94a3b8; --toolbar-bg: rgba(15, 23, 42, 0.8); --toolbar-border: #334155; --toolbar-text: #e2e8f0; --toolbar-hover: rgba(15, 23, 42, 0.95); --toolbar-menu-bg: #0f172a; }
+[data-theme="light"] { --bg: #f8fafc; --grid: #e2e8f0; --text: #0f172a; --text-muted: #64748b; --text-dim: #94a3b8; --text-faint: #64748b; --panel: #ffffff; --panel-border: #e2e8f0; --lane-fill: rgba(248, 250, 252, 0.65); --lane-stroke: #cbd5e1; --arrow: #94a3b8; --arrow-emphasis: #059669; --mask: #ffffff; --frontend-fill: rgba(34, 211, 238, 0.15); --frontend-stroke: #0891b2; --backend-fill: rgba(52, 211, 153, 0.18); --backend-stroke: #059669; --database-fill: rgba(167, 139, 250, 0.2); --database-stroke: #7c3aed; --cloud-fill: rgba(251, 191, 36, 0.18); --cloud-stroke: #d97706; --security-fill: rgba(251, 113, 133, 0.15); --security-stroke: #e11d48; --messagebus-fill: rgba(251, 146, 60, 0.15); --messagebus-stroke: #ea580c; --external-fill: rgba(148, 163, 184, 0.18); --external-stroke: #64748b; --toolbar-bg: rgba(255, 255, 255, 0.92); --toolbar-border: #cbd5e1; --toolbar-text: #334155; --toolbar-hover: #ffffff; --toolbar-menu-bg: #ffffff; }
+svg { width: 100%; min-width: min(900px, 100%); display: block; }
+.c-grid { stroke: var(--grid); fill: none; }
+.c-mask { fill: var(--mask); stroke: none; }
+.c-frontend { fill: var(--frontend-fill); stroke: var(--frontend-stroke); }
+.c-backend { fill: var(--backend-fill); stroke: var(--backend-stroke); }
+.c-database { fill: var(--database-fill); stroke: var(--database-stroke); }
+.c-cloud { fill: var(--cloud-fill); stroke: var(--cloud-stroke); }
+.c-security { fill: var(--security-fill); stroke: var(--security-stroke); }
+.c-messagebus { fill: var(--messagebus-fill); stroke: var(--messagebus-stroke); }
+.c-external { fill: var(--external-fill); stroke: var(--external-stroke); }
+.t-primary { fill: var(--text); }
+.t-muted { fill: var(--text-muted); }
+.t-dim { fill: var(--text-dim); }
+.t-frontend { fill: var(--frontend-stroke); }
+.t-backend { fill: var(--backend-stroke); }
+.t-database { fill: var(--database-stroke); }
+.t-cloud { fill: var(--cloud-stroke); }
+.t-security { fill: var(--security-stroke); }
+.t-messagebus { fill: var(--messagebus-stroke); }
+.t-external { fill: var(--external-stroke); }
+.a-default { stroke: var(--arrow); fill: none; }
+.a-emphasis { stroke: var(--arrow-emphasis); fill: none; }
+.a-security { stroke: var(--security-stroke); fill: none; stroke-dasharray: 5, 5; }
+.a-dashed { stroke: var(--database-stroke); fill: none; stroke-dasharray: 4, 4; }
+.m-default { fill: var(--arrow); }
+.m-emphasis { fill: var(--arrow-emphasis); }
+.m-security { fill: var(--security-stroke); }
+.m-dashed { fill: var(--database-stroke); }
+.c-security-group { fill: transparent; stroke: var(--security-stroke); stroke-dasharray: 4, 4; }
+.c-region { fill: rgba(251, 191, 36, 0.05); stroke: var(--cloud-stroke); stroke-dasharray: 8, 4; }
+.c-lane { fill: var(--lane-fill); stroke: var(--lane-stroke); stroke-dasharray: 6, 6; }
+svg[data-animation="trace"] [data-animate="edge"] { stroke-dasharray: 10, 8; stroke-dashoffset: 54; animation-duration: 2.4s; animation-timing-function: linear; animation-iteration-count: infinite; animation-direction: normal; animation-fill-mode: none; animation-play-state: running; animation-name: archify-edge-flow; animation-timeline: auto; animation-range: normal; animation-delay: calc(var(--step, 0) * 160ms); }
+svg[data-animation="trace"] [data-animate="node"] { transform-box: fill-box; transform-origin: center center; animation-duration: 3.6s; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-direction: normal; animation-fill-mode: none; animation-play-state: running; animation-name: archify-node-pulse; animation-timeline: auto; animation-range: normal; animation-delay: calc(var(--step, 0) * 160ms); }
+:root, svg { --bg: #020617; --grid: #1e293b; --text: #ffffff; --text-muted: #94a3b8; --text-dim: #475569; --text-faint: #7d8da1; --panel: rgba(15, 23, 42, 0.5); --panel-border: #1e293b; --lane-fill: rgba(15, 23, 42, 0.22); --lane-stroke: #334155; --arrow: #64748b; --arrow-emphasis: #34d399; --mask: #0f172a; --frontend-fill: rgba(8, 51, 68, 0.4); --frontend-stroke: #22d3ee; --backend-fill: rgba(6, 78, 59, 0.4); --backend-stroke: #34d399; --database-fill: rgba(76, 29, 149, 0.4); --database-stroke: #a78bfa; --cloud-fill: rgba(120, 53, 15, 0.3); --cloud-stroke: #fbbf24; --security-fill: rgba(136, 19, 55, 0.4); --security-stroke: #fb7185; --messagebus-fill: rgba(251, 146, 60, 0.3); --messagebus-stroke: #fb923c; --external-fill: rgba(30, 41, 59, 0.5); --external-stroke: #94a3b8; --toolbar-bg: rgba(15, 23, 42, 0.8); --toolbar-border: #334155; --toolbar-text: #e2e8f0; --toolbar-hover: rgba(15, 23, 42, 0.95); --toolbar-menu-bg: #0f172a; }
+@media (prefers-color-scheme: light) { :root, svg { --bg: #f8fafc; --grid: #e2e8f0; --text: #0f172a; --text-muted: #64748b; --text-dim: #94a3b8; --text-faint: #64748b; --panel: #ffffff; --panel-border: #e2e8f0; --lane-fill: rgba(248, 250, 252, 0.65); --lane-stroke: #cbd5e1; --arrow: #94a3b8; --arrow-emphasis: #059669; --mask: #ffffff; --frontend-fill: rgba(34, 211, 238, 0.15); --frontend-stroke: #0891b2; --backend-fill: rgba(52, 211, 153, 0.18); --backend-stroke: #059669; --database-fill: rgba(167, 139, 250, 0.2); --database-stroke: #7c3aed; --cloud-fill: rgba(251, 191, 36, 0.18); --cloud-stroke: #d97706; --security-fill: rgba(251, 113, 133, 0.15); --security-stroke: #e11d48; --messagebus-fill: rgba(251, 146, 60, 0.15); --messagebus-stroke: #ea580c; --external-fill: rgba(148, 163, 184, 0.18); --external-stroke: #64748b; --toolbar-bg: rgba(255, 255, 255, 0.92); --toolbar-border: #cbd5e1; --toolbar-text: #334155; --toolbar-hover: #ffffff; --toolbar-menu-bg: #ffffff; } }
+svg[data-theme="light"] { --bg: #f8fafc; --grid: #e2e8f0; --text: #0f172a; --text-muted: #64748b; --text-dim: #94a3b8; --text-faint: #64748b; --panel: #ffffff; --panel-border: #e2e8f0; --lane-fill: rgba(248, 250, 252, 0.65); --lane-stroke: #cbd5e1; --arrow: #94a3b8; --arrow-emphasis: #059669; --mask: #ffffff; --frontend-fill: rgba(34, 211, 238, 0.15); --frontend-stroke: #0891b2; --backend-fill: rgba(52, 211, 153, 0.18); --backend-stroke: #059669; --database-fill: rgba(167, 139, 250, 0.2); --database-stroke: #7c3aed; --cloud-fill: rgba(251, 191, 36, 0.18); --cloud-stroke: #d97706; --security-fill: rgba(251, 113, 133, 0.15); --security-stroke: #e11d48; --messagebus-fill: rgba(251, 146, 60, 0.15); --messagebus-stroke: #ea580c; --external-fill: rgba(148, 163, 184, 0.18); --external-stroke: #64748b; --toolbar-bg: rgba(255, 255, 255, 0.92); --toolbar-border: #cbd5e1; --toolbar-text: #334155; --toolbar-hover: #ffffff; --toolbar-menu-bg: #ffffff; }
+svg[data-theme="dark"] { --bg: #020617; --grid: #1e293b; --text: #ffffff; --text-muted: #94a3b8; --text-dim: #475569; --text-faint: #7d8da1; --panel: rgba(15, 23, 42, 0.5); --panel-border: #1e293b; --lane-fill: rgba(15, 23, 42, 0.22); --lane-stroke: #334155; --arrow: #64748b; --arrow-emphasis: #34d399; --mask: #0f172a; --frontend-fill: rgba(8, 51, 68, 0.4); --frontend-stroke: #22d3ee; --backend-fill: rgba(6, 78, 59, 0.4); --backend-stroke: #34d399; --database-fill: rgba(76, 29, 149, 0.4); --database-stroke: #a78bfa; --cloud-fill: rgba(120, 53, 15, 0.3); --cloud-stroke: #fbbf24; --security-fill: rgba(136, 19, 55, 0.4); --security-stroke: #fb7185; --messagebus-fill: rgba(251, 146, 60, 0.3); --messagebus-stroke: #fb923c; --external-fill: rgba(30, 41, 59, 0.5); --external-stroke: #94a3b8; --toolbar-bg: rgba(15, 23, 42, 0.8); --toolbar-border: #334155; --toolbar-text: #e2e8f0; --toolbar-hover: rgba(15, 23, 42, 0.95); --toolbar-menu-bg: #0f172a; }
+rect.c-bg-rect { fill: var(--bg); }
+</style><rect width="100%" height="100%" class="c-bg-rect"/>
+        <!-- Definitions -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default"/>
+          </marker>
+          <marker id="arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis"/>
+          </marker>
+          <marker id="arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security"/>
+          </marker>
+          <marker id="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed"/>
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background Grid -->
+        <rect width="100%" height="100%" fill="url(#grid)"/>
+
+        <!-- Boundaries (behind everything) -->
+        <rect x="30" y="90" width="260" height="770" rx="12" class="c-region" stroke-width="1"/>
+        <text x="38" y="108" class="t-cloud" font-size="9" font-weight="600">适配层 与 skill 编排</text>
+
+        <rect x="400" y="90" width="1090" height="770" rx="12" class="c-region" stroke-width="1"/>
+        <text x="408" y="108" class="t-cloud" font-size="9" font-weight="600">共用核心与每端数据 模块并不代表独立服务</text>
+
+        <!-- Connection paths (before components for correct z-order) -->
+        <path d="M 160 190 L 160 350" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 260 385 L 342.5 385 Q 345 385 345 387.5 L 345 387.5 Q 345 390 347.5 390 L 430 390" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 260 595 L 337 595 Q 345 595 345 587 L 345 398 Q 345 390 353 390 L 430 390" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 260 805 L 307 805 Q 315 805 315 797 L 315 398 Q 315 390 323 390 L 430 390" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 550 190 L 550 350" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 860 155 L 670 155" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 670 390 L 860 390" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 550 430 L 550 592 Q 550 600 558 600 L 860 600" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 965 430 L 965 560" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 1070 600 L 1240 600" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 430 390 L 393 390 Q 385 390 385 398 L 385 727 Q 385 735 393 735 L 542 735 Q 550 735 550 743 L 550 770" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 670 805 L 860 805" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+
+        <!-- Components -->
+        <rect x="60" y="350" width="200" height="70" rx="6" class="c-mask"/>
+        <rect x="60" y="350" width="200" height="70" rx="6" class="c-frontend" stroke-width="1.5"/>
+        <text x="160" y="383" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">CLI / JSON · 已实现</text>
+        <text x="160" y="399" class="t-muted" font-size="9" text-anchor="middle">cli.py · client.py · commands.py</text>
+        <text x="160" y="412" class="t-frontend" font-size="7" text-anchor="middle">本地调用或 --server</text>
+
+        <rect x="60" y="560" width="200" height="70" rx="6" class="c-mask"/>
+        <rect x="60" y="560" width="200" height="70" rx="6" class="c-frontend" stroke-width="1.5"/>
+        <text x="160" y="593" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">HTTP API · 已实现</text>
+        <text x="160" y="609" class="t-muted" font-size="9" text-anchor="middle">api.py · FastAPI · Bearer</text>
+        <text x="160" y="622" class="t-frontend" font-size="7" text-anchor="middle">本机测试通过 · NAS 待验收</text>
+
+        <rect x="60" y="770" width="200" height="70" rx="6" class="c-mask"/>
+        <rect x="60" y="770" width="200" height="70" rx="6" class="c-frontend" stroke-width="1.5"/>
+        <text x="160" y="803" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">MCP · 未实现</text>
+        <text x="160" y="819" class="t-muted" font-size="9" text-anchor="middle">后续工具发现与调用适配</text>
+        <text x="160" y="832" class="t-frontend" font-size="7" text-anchor="middle">虚线表示后续适配</text>
+
+        <rect x="60" y="120" width="200" height="70" rx="6" class="c-mask"/>
+        <rect x="60" y="120" width="200" height="70" rx="6" class="c-external" stroke-width="1.5"/>
+        <text x="160" y="153" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">knowledge-maintain</text>
+        <text x="160" y="169" class="t-muted" font-size="9" text-anchor="middle">构建 · 安装 · 更新 · 回滚</text>
+        <text x="160" y="182" class="t-external" font-size="7" text-anchor="middle">已实现 · Hermes 待联调</text>
+
+        <rect x="430" y="350" width="240" height="80" rx="6" class="c-mask"/>
+        <rect x="430" y="350" width="240" height="80" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="550" y="388" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">共用核心 · 已实现</text>
+        <text x="550" y="404" class="t-muted" font-size="9" text-anchor="middle">查询 · 校验 · 受控写入 · 状态</text>
+        <text x="550" y="422" class="t-backend" font-size="7" text-anchor="middle">operations / status / state</text>
+
+        <rect x="430" y="120" width="240" height="70" rx="6" class="c-mask"/>
+        <rect x="430" y="120" width="240" height="70" rx="6" class="c-security" stroke-width="1.5"/>
+        <text x="550" y="153" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">规范与模板 · 已实现</text>
+        <text x="550" y="169" class="t-muted" font-size="9" text-anchor="middle">vault.py · JSON Schema · 模板</text>
+        <text x="550" y="182" class="t-security" font-size="7" text-anchor="middle">路径绑定 · 引用与格式校验</text>
+
+        <rect x="860" y="120" width="210" height="70" rx="6" class="c-mask"/>
+        <rect x="860" y="120" width="210" height="70" rx="6" class="c-database" stroke-width="1.5"/>
+        <text x="965" y="153" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">随文件同步的 .kb/</text>
+        <text x="965" y="169" class="t-muted" font-size="9" text-anchor="middle">config.toml · JSON 规范 · 模板</text>
+
+        <rect x="860" y="350" width="210" height="80" rx="6" class="c-mask"/>
+        <rect x="860" y="350" width="210" height="80" rx="6" class="c-database" stroke-width="1.5"/>
+        <text x="965" y="388" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Markdown 与原始资料</text>
+        <text x="965" y="404" class="t-muted" font-size="9" text-anchor="middle">笔记 · 待办 · 链接 · 来源</text>
+        <text x="965" y="422" class="t-database" font-size="7" text-anchor="middle">解析用原文 · 写入需哈希</text>
+
+        <rect x="860" y="560" width="210" height="80" rx="6" class="c-mask"/>
+        <rect x="860" y="560" width="210" height="80" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="965" y="598" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">解析 / 索引 / 检索</text>
+        <text x="965" y="614" class="t-muted" font-size="9" text-anchor="middle">indexing.py · 中文分析 · 属性</text>
+        <text x="965" y="632" class="t-backend" font-size="7" text-anchor="middle">周期核验 · --fresh · 已实现</text>
+
+        <rect x="1240" y="560" width="220" height="80" rx="6" class="c-mask"/>
+        <rect x="1240" y="560" width="220" height="80" rx="6" class="c-database" stroke-width="1.5"/>
+        <text x="1350" y="598" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">库外状态与 SQLite</text>
+        <text x="1350" y="614" class="t-muted" font-size="9" text-anchor="middle">FTS5 / BM25 · 操作日志 · 锁</text>
+        <text x="1350" y="632" class="t-database" font-size="7" text-anchor="middle">索引可重建 · 日志用于恢复</text>
+
+        <rect x="430" y="770" width="240" height="70" rx="6" class="c-mask"/>
+        <rect x="430" y="770" width="240" height="70" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="550" y="803" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Git 同步 · 已实现</text>
+        <text x="550" y="819" class="t-muted" font-size="9" text-anchor="middle">git_sync.py · 显式 sync</text>
+        <text x="550" y="832" class="t-backend" font-size="7" text-anchor="middle">共用锁 · 分叉人工整合</text>
+
+        <rect x="860" y="770" width="210" height="70" rx="6" class="c-mask"/>
+        <rect x="860" y="770" width="210" height="70" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="965" y="803" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">知识库 Git 远端</text>
+        <text x="965" y="819" class="t-muted" font-size="9" text-anchor="middle">Gitee 等原生 Git 服务</text>
+        <text x="965" y="832" class="t-cloud" font-size="7" text-anchor="middle">无自动同步或自动合并</text>
+
+        <!-- Connection labels -->
+        <rect x="135.8" y="245" width="48.4" height="14" rx="3" class="c-mask"/>
+        <text x="160" y="255" class="t-security" font-size="8" text-anchor="middle">调用工具</text>
+
+
+
+
+        <rect x="733.6" y="135" width="62.8" height="14" rx="3" class="c-mask"/>
+        <text x="765" y="145" class="t-security" font-size="8" text-anchor="middle">规则 / 模板</text>
+        <rect x="731.2" y="370" width="67.6" height="14" rx="3" class="c-mask"/>
+        <text x="765" y="380" class="t-backend" font-size="8" text-anchor="middle">读写 / check</text>
+        <rect x="688.6" y="575" width="62.8" height="14" rx="3" class="c-mask"/>
+        <text x="720" y="585" class="t-muted" font-size="8" text-anchor="middle">检索 / 刷新</text>
+        <rect x="940.8" y="490" width="48.4" height="14" rx="3" class="c-mask"/>
+        <text x="965" y="500" class="t-messagebus" font-size="8" text-anchor="middle">磁盘变化</text>
+        <rect x="1123.6" y="580" width="62.8" height="14" rx="3" class="c-mask"/>
+        <text x="1155" y="590" class="t-muted" font-size="8" text-anchor="middle">事务 / 查询</text>
+        <rect x="360.8" y="665" width="48.4" height="14" rx="3" class="c-mask"/>
+        <text x="385" y="675" class="t-messagebus" font-size="8" text-anchor="middle">显式调用</text>
+        <rect x="733.6" y="785" width="62.8" height="14" rx="3" class="c-mask"/>
+        <text x="765" y="795" class="t-messagebus" font-size="8" text-anchor="middle">pull / push</text>
+
+        <!-- Legend -->
+        <text x="40" y="1001" class="t-primary" font-size="9" font-weight="600">Legend</text>
+        <rect x="40" y="1006" width="14" height="9" rx="2" class="c-frontend" stroke-width="1"/>
+        <text x="60" y="1014" class="t-muted" font-size="8">Frontend</text>
+        <rect x="138" y="1006" width="14" height="9" rx="2" class="c-external" stroke-width="1"/>
+        <text x="158" y="1014" class="t-muted" font-size="8">External</text>
+        <rect x="236" y="1006" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
+        <text x="256" y="1014" class="t-muted" font-size="8">Backend</text>
+        <rect x="329" y="1006" width="14" height="9" rx="2" class="c-security" stroke-width="1"/>
+        <text x="349" y="1014" class="t-muted" font-size="8">Security</text>
+        <rect x="427" y="1006" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
+        <text x="447" y="1014" class="t-muted" font-size="8">Database</text>
+        <rect x="525" y="1006" width="14" height="9" rx="2" class="c-cloud" stroke-width="1"/>
+        <text x="545" y="1014" class="t-muted" font-size="8">Cloud</text>
+      </svg>
