@@ -18,6 +18,15 @@ FILES = (
     "navigation.mjs",
     "navigation-ui.mjs",
     "ui.mjs",
+    "appearance.mjs",
+    "appearance-ui.mjs",
+    "knowledge-ui.mjs",
+    "shell.mjs",
+    "assets/mist.svg",
+    "markdown.mjs",
+    "vendor/markdown-it-15.0.3.mjs",
+    "vendor/markdown-it-LICENSE.txt",
+    "vendor/THIRD-PARTY-NOTICES.txt",
 )
 
 
@@ -40,14 +49,16 @@ def build(output, source=None):
             file = root / relative
             if not file.is_file() or file.is_symlink():
                 raise ValueError(f"Missing or linked release input: {relative}")
+            (output / relative).parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(file, output / relative)
         hashes = {name: hashlib.sha256((output / name).read_bytes()).hexdigest() for name in FILES}
         (output / "release.json").write_text(
             json.dumps({"version": manifest["version"], "files": hashes}, indent=2) + "\n"
         )
         with zipfile.ZipFile(archive, "x", compression=zipfile.ZIP_DEFLATED) as zipped:
-            for file in sorted(output.iterdir()):
-                info = zipfile.ZipInfo("chrome-kb/" + file.name)
+            for name in sorted((*FILES, "release.json")):
+                file = output / name
+                info = zipfile.ZipInfo("chrome-kb/" + name)
                 info.compress_type = zipfile.ZIP_DEFLATED
                 info.external_attr = 0o100644 << 16
                 zipped.writestr(info, file.read_bytes())

@@ -1,6 +1,9 @@
 import {ApiError, permissionOrigin, taskChanges, validateTask} from './api.mjs';
+import {initAppearance} from './appearance-ui.mjs';
+import {initKnowledge} from './knowledge-ui.mjs';
+import {initShell} from './shell.mjs';
 import {initNavigation} from './navigation-ui.mjs';
-import {bindValidation,preserveFocus,protectDialogSecret,showDialog,showFormError} from './ui.mjs';
+import {bindLightDismiss,bindValidation,preserveFocus,protectDialogSecret,showDialog,showFormError} from './ui.mjs';
 const $ = id => document.getElementById(id);
 const labels = {pending: '待处理', doing: '进行中', done: '已完成', all: '全部待办', cancelled: '已取消'};
 const statuses = {todo: '待办', doing: '进行中', done: '已完成', cancelled: '已取消'};
@@ -8,6 +11,9 @@ let snapshot = {connection: {configured: false}, resources: {}, writable: false}
 let filter = 'pending', fetching = false, mutating = false, editing = null, conflict = false, latest = null, uncertain = false;
 let refreshGeneration = 0, toastTimer, refreshQueued = false;
 let editingRevision = null, settingsRevision = null, connecting = false;
+document.querySelectorAll('dialog').forEach(dialog=>bindLightDismiss(dialog));
+const shell=initShell();
+const knowledge=initKnowledge({send,getConnection:()=>snapshot.connection});
 const closeSettings = protectDialogSecret($('settings-dialog'),$('token-input'),()=>connecting);
 const el = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; };
 async function send(message) {
@@ -24,9 +30,11 @@ function matches(task, mode) { return mode === 'all' || (mode === 'pending' ? ['
 function writable() { return snapshot.writable && !mutating; }
 function render() {
   const restoreFocus = preserveFocus($('task-list'));
+  knowledge.connectionChanged();
   const resources = snapshot.resources, all = tasks(), query = $('search').value.trim().toLowerCase();
   const visible = all.filter(task => matches(task, filter) && `${task.title} ${(task.tags || []).join(' ')}`.toLowerCase().includes(query));
   const hasTasks = Boolean(resources.tasks?.data);
+  const pending=all.filter(t=>['todo','doing'].includes(t.status)).length;$('pending-badge').hidden=!hasTasks||!pending;$('pending-badge').textContent=pending;
   document.querySelectorAll('[data-count]').forEach(n => n.textContent = hasTasks ? all.filter(t => matches(t, n.dataset.count)).length : '—');
   document.querySelectorAll('[data-filter]').forEach(n => { n.classList.toggle('selected', n.dataset.filter === filter); n.setAttribute('aria-current', n.dataset.filter === filter ? 'page' : 'false'); });
   $('list-heading').textContent = labels[filter];
@@ -168,13 +176,19 @@ $('task-dialog').addEventListener('cancel', event => { if (mutating) event.preve
 $('filters').addEventListener('click', event => { const button = event.target.closest('[data-filter]'); if (button) { filter = button.dataset.filter; render(); } });
 $('search').addEventListener('input', render); $('settings-button').addEventListener('click', openSettings); $('refresh-button').addEventListener('click', () => refresh({quiet:false})); $('add-button').addEventListener('click', () => openTask());
 $('empty-action').addEventListener('click', () => !snapshot.connection.configured || !snapshot.resources.tasks?.data ? openSettings() : openTask());
-function selectKnowledgeTab(status) {
-  $('tasks-view').hidden = status; $('status-view').hidden = !status;
-  for (const [id,active] of [['tasks-tab',!status],['status-tab',status]]) { $(id).classList.toggle('selected',active); $(id).setAttribute('aria-selected',String(active)); $(id).tabIndex = active ? 0 : -1; }
+const knowledgeTabs=['tasks','knowledge','status'];
+const tabScroll=new Map();
+function selectKnowledgeTab(name) {
+  const scroller=document.querySelector('.drawer-content'),previous=knowledgeTabs.find(key=>$(key+'-tab').getAttribute('aria-selected')==='true');
+  if(previous!==name)tabScroll.set(previous,scroller.scrollTop);
+  for(const key of knowledgeTabs){const active=key===name;$(key+'-view').hidden=!active;$(key+'-tab').classList.toggle('selected',active);$(key+'-tab').setAttribute('aria-selected',String(active));$(key+'-tab').tabIndex=active?0:-1;}
+  scroller.scrollTop=tabScroll.get(name)||0;
+  if(name==='knowledge')knowledge.activate();else knowledge.deactivate();
 }
-$('tasks-tab').addEventListener('click',() => selectKnowledgeTab(false)); $('status-tab').addEventListener('click',() => selectKnowledgeTab(true));
-document.querySelector('.knowledge-tabs').addEventListener('keydown',event => { if (['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) { event.preventDefault(); const status = event.key === 'End' || (event.key !== 'Home' && $('status-view').hidden); selectKnowledgeTab(status); $(status ? 'status-tab' : 'tasks-tab').focus(); } });
-function dateLabel() { $('date-label').textContent = new Intl.DateTimeFormat('zh-CN',{month:'long',day:'numeric',weekday:'long'}).format(new Date()); }
+for(const key of knowledgeTabs)$(key+'-tab').addEventListener('click',()=>selectKnowledgeTab(key));
+document.querySelector('.knowledge-tabs').addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();let index=knowledgeTabs.findIndex(key=>$(key+'-tab').getAttribute('aria-selected')==='true');index=event.key==='Home'?0:event.key==='End'?2:(index+(event.key==='ArrowRight'?1:2))%3;selectKnowledgeTab(knowledgeTabs[index]);$(knowledgeTabs[index]+'-tab').focus();});
+$('knowledge-settings').addEventListener('click',openSettings);
+function dateLabel() { const now=new Date();$('date-label').textContent=new Intl.DateTimeFormat('zh-CN',{month:'long',day:'numeric',weekday:'long'}).format(now);$('clock').textContent=new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit',hour12:false}).format(now);$('clock').dateTime=now.toISOString();$('greeting').textContent=now.getHours()<11?'早安，给今天一个从容的开始。':now.getHours()<18?'午后，把注意力留给喜欢的事。':'夜深了，留一点空间给自己。'; }
 chrome.storage.onChanged.addListener((changes, area) => { if (area === 'local' && changes.connection) {
   ++refreshGeneration;
   const next = changes.connection.newValue;
@@ -185,4 +199,4 @@ chrome.storage.onChanged.addListener((changes, area) => { if (area === 'local' &
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 setInterval(() => { dateLabel(); if (!document.hidden && !$('settings-dialog').open) refresh(); }, 30000);
 for (const [form,error] of [['settings-form','settings-error'],['task-form','task-error']]) bindValidation(form,error);
-dateLabel(); render(); await initNavigation({send,toast}); await refresh();
+dateLabel(); render(); await initAppearance({send,toast}); await initNavigation({send,toast,onPreferences:shell.preferences}); await refresh();

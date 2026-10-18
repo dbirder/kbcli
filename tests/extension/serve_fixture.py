@@ -34,6 +34,13 @@ if not vault.documents():
         ops.create(title, template="task", metadata={"due": due, "tags": tags}, actor="ai")
     finished = ops.create("搭好知识库目录与规范", template="task", actor="ai")
     ops.task_done(finished["id"], finished["file_hash"])
+# Rich, synthetic reading fixtures; never copied into the extension package.
+if not any(doc.path == "notes/阅读器-关联笔记.md" for doc in vault.documents()):
+    related = ops.create("知识库整理清单", path="notes/阅读器-关联笔记.md", actor="ai")
+    ops.patch(related["id"], {"body": "## 下一次回顾\n\n先整理 inbox，再复习 notes。\n"}, expect_hash=related["file_hash"], actor="ai")
+if not any(doc.path == "notes/阅读器-展示示例.md" for doc in vault.documents()):
+    article = ops.create("从收集到沉淀：我的知识库工作流", path="notes/阅读器-展示示例.md", metadata={"tags": ["知识管理", "实践"]}, actor="ai")
+    ops.patch(article["id"], {"body": (ROOT / "tests/extension/fixtures/article.md").read_text()}, expect_hash=article["file_hash"], actor="ai")
 sync = base / "autosync"
 sync.mkdir(exist_ok=True)
 (sync / "status.json").write_text(

@@ -13,10 +13,31 @@ export function preserveFocus(container) {
     focus(next,fallback);
   };
 }
-export function showDialog(id,fallbackId) {
+export function showDialog(id,fallbackId,{modal=true}={}) {
   const dialog = $(id), opener = document.activeElement, key = opener?.dataset.focusKey;
   dialog.addEventListener('close',() => focus(key ? focusKey(key) : opener,$(fallbackId)),{once:true});
-  dialog.showModal();
+  if(modal)dialog.showModal();else dialog.show();
+}
+// Native closedby handles the topmost modal. Chrome 120 needs an equivalent
+// cancelable close request, including pointer-origin checks for text selection.
+export function bindLightDismiss(dialog,{nativeSupported='closedBy' in dialog}={}) {
+  dialog.setAttribute('closedby','any');
+  if(nativeSupported)return;
+  let startedOutside=false;
+  const outside=event=>{
+    const rect=dialog.getBoundingClientRect();
+    return event.target===dialog&&(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom);
+  };
+  dialog.addEventListener('pointerdown',event=>{startedOutside=event.button===0&&event.isPrimary!==false&&outside(event);});
+  dialog.addEventListener('pointercancel',()=>{startedOutside=false;});
+  dialog.addEventListener('close',()=>{startedOutside=false;});
+  dialog.addEventListener('click',event=>{
+    const dismiss=startedOutside&&outside(event);startedOutside=false;
+    if(!dismiss||!dialog.open)return;
+    event.preventDefault();event.stopPropagation();
+    // Reuse Escape's busy guards and synchronous secret clearing before close.
+    if(dialog.dispatchEvent(new Event('cancel',{cancelable:true})))dialog.close();
+  });
 }
 export function protectDialogSecret(dialog,input,isBusy) {
   const clear = () => { input.value=''; };

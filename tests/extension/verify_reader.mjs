@@ -1,0 +1,42 @@
+// Local fixture only: tests real Markdown rendering and controls without production writes.
+import assert from 'node:assert/strict';
+export async function verifyReader({page,baseURL,screenshotDirectory}) {
+  assert.match(baseURL,/^http:\/\/127\.0\.0\.1:\d+$/);
+  const click=selector=>page.evaluate(selector=>{const b=document.querySelector(selector);b.focus();b.click();},selector);
+  const ready=id=>page.waitForFunction(id=>document.getElementById(id).open&&getComputedStyle(document.getElementById(id)).opacity==='1',id);
+  const closed=id=>page.waitForFunction(id=>!document.getElementById(id).open&&getComputedStyle(document.getElementById(id)).display==='none',id);
+  const outside=async id=>{await page.cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:2,y:2,button:'left',clickCount:1});await page.cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:2,y:2,button:'left',clickCount:1});await closed(id);};
+  const openArticle=async()=>{await click('button[aria-label="阅读文章：从收集到沉淀：我的知识库工作流"]');await ready('document-dialog');await page.waitForFunction(()=>document.querySelector('#document-content table')&&document.querySelector('#document-loading').hidden);};
+  await page.cdp('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});await page.cdp('Network.setCacheDisabled',{cacheDisabled:true});await page.goto(baseURL+'/?reader-check='+Date.now());await page.waitForSelector('.folder-button');
+  if(!await page.evaluate(()=>JSON.parse(localStorage.getItem('kb-test-connection')||'null'))){await click('#settings-button');await ready('settings-dialog');await page.fill('#server-input',baseURL);await page.fill('#token-input','ui-test-user');await click('#connect-button');await closed('settings-dialog');await page.waitForFunction(()=>!document.querySelector('#pending-badge').hidden);}
+  await page.evaluate(()=>{window.__readerRequests=[];const original=chrome.runtime.sendMessage;chrome.runtime.sendMessage=async message=>{window.__readerRequests.push(message.type);return original(message);};window.__readerResourcesBefore=performance.getEntriesByType('resource').map(e=>e.name);});
+  const before=await page.evaluate(()=>{const r=document.querySelector('#home-main').getBoundingClientRect();return [r.x,r.y,r.width,r.height];});await click('#knowledge-toggle');await ready('knowledge-panel');
+  assert.deepEqual(await page.evaluate(()=>{const r=document.querySelector('#home-main').getBoundingClientRect();return [r.x,r.y,r.width,r.height];}),before);
+  await page.screenshot({path:screenshotDirectory+'/chrome-kb-040-tasks.png'});
+  assert.equal(await page.evaluate(()=>new Set([...document.querySelectorAll('#filters button')].map(n=>Math.round(n.getBoundingClientRect().y))).size),1);
+  await click('#knowledge-tab');await page.waitForSelector('button[aria-label="阅读文章：从收集到沉淀：我的知识库工作流"]');
+  const input=await page.evaluate(()=>{const a=document.querySelector('#knowledge-search-form .search').getBoundingClientRect(),b=document.querySelector('#knowledge-search-button').getBoundingClientRect(),i=getComputedStyle(document.querySelector('#knowledge-query'));return {a:{y:a.y,height:a.height},b:{y:b.y,height:b.height},border:i.borderWidth,margin:i.marginTop};});
+  assert.equal(input.a.height,48);assert.deepEqual(input.a,input.b);assert.equal(input.border,'0px');assert.equal(input.margin,'0px');
+  await page.screenshot({path:screenshotDirectory+'/chrome-kb-040-knowledge.png'});
+  await openArticle();assert.equal(await page.evaluate(()=>{const r=document.querySelector('#document-dialog').getBoundingClientRect();return Math.abs(r.x+r.width/2-document.documentElement.clientWidth/2)<2;}),true);
+  const render=await page.evaluate(()=>{const c=document.querySelector('#document-content');return {headings:c.querySelectorAll('h2').length,table:c.querySelectorAll('table').length,quote:c.querySelectorAll('blockquote').length,code:c.querySelectorAll('pre code').length,checkboxes:c.querySelectorAll('input[type=checkbox]:disabled').length,unsafe:c.querySelectorAll('script,img,iframe,object,[onerror],[onclick],a[href^="javascript:"],textarea,[contenteditable]').length,xss:window.__articleXss||0,frontMatter:c.textContent.includes('schema: note-v1')};});
+  assert.ok(render.headings>=3);assert.equal(render.table,1);assert.equal(render.quote,1);assert.equal(render.code,1);assert.equal(render.checkboxes,3);assert.equal(render.unsafe,0);assert.equal(render.xss,0);assert.equal(render.frontMatter,false);
+  await page.screenshot({path:screenshotDirectory+'/chrome-kb-040-article.png'});
+  const headerBefore=await page.evaluate(()=>document.querySelector('.article-toolbar').getBoundingClientRect().y);await page.evaluate(()=>{document.querySelector('#document-scroll').scrollTop=850;});assert.equal(await page.evaluate(()=>document.querySelector('.article-toolbar').getBoundingClientRect().y),headerBefore);
+  await page.screenshot({path:screenshotDirectory+'/chrome-kb-040-markdown.png'});
+  await click('[data-document-path="notes/阅读器-关联笔记.md"]');await page.waitForFunction(()=>document.querySelector('#document-title').textContent==='知识库整理清单'&&document.querySelector('#document-content').textContent.includes('下一次回顾'));
+  await outside('document-dialog');assert.equal(await page.evaluate(()=>document.querySelector('#knowledge-panel').open),true);assert.equal(await page.evaluate(()=>document.activeElement.getAttribute('aria-label')),'阅读文章：从收集到沉淀：我的知识库工作流');
+  await click('#status-tab');await page.screenshot({path:screenshotDirectory+'/chrome-kb-040-status.png'});
+  const headerY=await page.evaluate(()=>document.querySelector('.drawer-header').getBoundingClientRect().y);await page.evaluate(()=>{document.querySelector('.drawer-content').scrollTop=10000;});assert.equal(await page.evaluate(()=>document.querySelector('.drawer-header').getBoundingClientRect().y),headerY);
+  await click('#knowledge-tab');assert.equal(await page.evaluate(()=>document.querySelector('.drawer-content').scrollTop),0);
+  // A response arriving after dismissal must not reopen or refill the reader.
+  await page.evaluate(()=>{const original=chrome.runtime.sendMessage;window.__lateReadDone=false;window.__releaseRead=null;chrome.runtime.sendMessage=async message=>{if(message.type==='knowledge.read'){await new Promise(resolve=>{window.__releaseRead=resolve;});chrome.runtime.sendMessage=original;const result=await original(message);window.__lateReadDone=true;return result;}return original(message);};});
+  await click('button[aria-label="阅读文章：从收集到沉淀：我的知识库工作流"]');await ready('document-dialog');await page.waitForFunction(()=>typeof window.__releaseRead==='function');await outside('document-dialog');await page.evaluate(()=>{window.__releaseRead();});await page.waitForFunction(()=>window.__lateReadDone&&!document.querySelector('#document-dialog').open&&!document.querySelector('#document-content').childNodes.length);
+  assert.deepEqual(await page.evaluate(()=>window.__readerRequests.filter(t=>!['snapshot','knowledge.list','knowledge.read'].includes(t))),[]);
+  assert.equal(await page.evaluate(()=>document.documentElement.hasAttribute('aria-pressed')),false);
+  const foreign=await page.evaluate(()=>performance.getEntriesByType('resource').filter(e=>!window.__readerResourcesBefore.includes(e.name)&&!e.name.startsWith(location.origin)).map(e=>e.name));assert.deepEqual(foreign,[]);
+  await outside('knowledge-panel');await page.cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await click('#knowledge-toggle');await ready('knowledge-panel');await click('#tasks-tab');
+  assert.equal(await page.evaluate(()=>document.querySelector('.drawer-content').scrollWidth<=document.querySelector('.drawer-content').clientWidth),true);await page.screenshot({path:screenshotDirectory+'/chrome-kb-040-mobile-tasks.png'});
+  await click('#knowledge-tab');await openArticle();assert.equal(await page.evaluate(()=>document.querySelector('#document-scroll').scrollWidth<=document.querySelector('#document-scroll').clientWidth),true);await page.screenshot({path:screenshotDirectory+'/chrome-kb-040-mobile-article.png'});await outside('document-dialog');await outside('knowledge-panel');
+  return {controls:'48px aligned search; no nested borders; one-row filters',reader:'centered Markdown, fixed toolbar, internal links, nested dismissal, read-only',safety:'no HTML execution, article writes or external resource requests',responsive:'1440px and 390px; no horizontal overflow'};
+}

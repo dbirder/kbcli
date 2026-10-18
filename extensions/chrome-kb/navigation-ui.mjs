@@ -2,7 +2,8 @@ import {MAX_BACKUP_BYTES,exportNavigation} from './navigation.mjs';
 import {bindValidation,preserveFocus,showDialog,showFormError} from './ui.mjs';
 const $ = id => document.getElementById(id);
 const node = (tag, className, text) => { const n = document.createElement(tag); n.className = className || ''; if (text !== undefined) n.textContent = text; return n; };
-export async function initNavigation({send,toast}) {
+export async function initNavigation({send,toast,onPreferences=()=>{}}) {
+  let folders = true, managing = false;
   let data = null, selected = 'all', editingSite = null, editingGroup = null, siteRevision, groupRevision, busy = false;
   const error = showFormError;
   function action(label, text, handler, disabled = false, key = label) {
@@ -14,70 +15,64 @@ export async function initNavigation({send,toast}) {
   }
   async function mutate(message, errorId, rev = data?.revision) {
     if (busy || !data) return false;
-    busy = true; document.querySelectorAll('#site-dialog button,#group-dialog button,.toggle-row input').forEach(b => b.disabled = true);
+    busy = true; document.querySelectorAll('#site-dialog button,#group-dialog button,#pref-new-tab,#pref-knowledge,#pref-compact').forEach(b => b.disabled = true);
     try { data = await send({...message,revision:rev}); error(errorId,null); render(); return true; }
     catch (e) { if (e.code === 'NAVIGATION_CHANGED') { await load(); siteRevision = data?.revision; groupRevision = data?.revision; } error(errorId,e); toast(e.message,true); return false; }
-    finally { busy = false; document.querySelectorAll('#site-dialog button,#group-dialog button,.toggle-row input').forEach(b => b.disabled = false); if (data) applyPreferences(); }
+    finally { busy = false; document.querySelectorAll('#site-dialog button,#group-dialog button,#pref-new-tab,#pref-knowledge,#pref-compact').forEach(b => b.disabled = false); if (data) applyPreferences(); }
   }
   function applyPreferences() {
     const p = data.preferences;
-    $('knowledge-panel').hidden = !p.showKnowledge;
+    onPreferences(p);
+    $('knowledge-toggle').hidden = !p.showKnowledge;
     $('show-knowledge-button').hidden = p.showKnowledge;
-    document.body.classList.toggle('knowledge-hidden',!p.showKnowledge);
+
     document.body.classList.toggle('compact-sites',p.compact);
     $('pref-new-tab').checked = p.openInNewTab; $('pref-knowledge').checked = p.showKnowledge; $('pref-compact').checked = p.compact;
   }
+  function icon(site,mini=false) {
+    const host=new URL(site.url).hostname.replace(/^www\./,''),hue=Array.from(host).reduce((a,c)=>a+c.charCodeAt(0),0)%360;
+    const n=node('span',mini?'mini-icon':'site-icon',site.title.slice(0,1).toUpperCase());n.setAttribute('aria-hidden','true');
+    n.style.backgroundColor=`hsl(${hue} 42% 84%)`;n.style.color=`hsl(${hue} 48% 25%)`;return n;
+  }
+  function siteCard(site,ordered,query='') {
+    const card=node('li','site-card');card.dataset.siteId=site.id;
+    const link=node('a','site-link');link.href=site.url;link.target=data.preferences.openInNewTab?'_blank':'_self';link.rel='noopener noreferrer';link.dataset.focusKey=`site:${site.id}:link`;
+    const copy=node('span','site-copy');copy.append(node('strong','',site.title),node('span','site-host',new URL(site.url).hostname.replace(/^www\./,'')));link.append(icon(site),copy);
+    const controls=node('div','site-controls'),position=ordered.indexOf(site);
+    controls.append(action(`向前移动网站：${site.title}`,'‹',()=>mutate({type:'bookmark.move',id:site.id,direction:-1},'navigation-error'),position===0||Boolean(query),`site:${site.id}:previous`),action(`向后移动网站：${site.title}`,'›',()=>mutate({type:'bookmark.move',id:site.id,direction:1},'navigation-error'),position===ordered.length-1||Boolean(query),`site:${site.id}:next`),action(`编辑网站：${site.title}`,'⋯',()=>openSite(site),false,`site:${site.id}:edit`));
+    card.append(link,controls);return card;
+  }
+  function renderFolder() {
+    const group=data.groups.find(g=>g.id===selected);if(!group){if($('folder-dialog').open)$('folder-dialog').close();return;}
+    const restore=preserveFocus($('folder-sites')),ordered=data.bookmarks.filter(s=>s.groupId===group.id),query=$('folder-search').value.trim().toLowerCase();
+    const sites=ordered.filter(s=>`${s.title} ${s.url}`.toLowerCase().includes(query));
+    $('folder-title').textContent=group.name;$('folder-count').textContent=`${ordered.length} 个网站`;
+    $('folder-sites').replaceChildren(...sites.map(s=>siteCard(s,ordered,query)));$('folder-empty').hidden=sites.length>0;restore();
+  }
   function render() {
-    if (!data) return;
-    const restoreNav = preserveFocus($('group-nav')),restoreSites = preserveFocus($('site-groups'));
-    applyPreferences();
-    if (selected !== 'all' && !data.groups.some(g => g.id === selected)) selected = 'all';
-    const query = $('site-search').value.trim().toLowerCase();
-    const visible = data.bookmarks.filter(s => (selected === 'all' || s.groupId === selected) && `${s.title} ${s.url}`.toLowerCase().includes(query));
-    const byGroup = new Map(data.groups.map(g=>[g.id,[]])), filtered = new Map(data.groups.map(g=>[g.id,[]]));
-    for (const site of data.bookmarks) byGroup.get(site.groupId).push(site);
-    for (const site of visible) filtered.get(site.groupId).push(site);
-    $('site-total').textContent = `共 ${data.bookmarks.length} 个收藏，${data.groups.length} 个分组${query ? ` · 找到 ${visible.length} 个` : ''}`;
-    const nav = $('group-nav'); nav.replaceChildren();
-    for (const group of [{id:'all',name:'全部网站'},...data.groups]) {
-      const b = node('button','nav-item' + (selected === group.id ? ' selected' : ''));
-      b.type = 'button'; b.dataset.groupId = group.id; b.dataset.focusKey=`group:${group.id}:filter`; b.setAttribute('aria-current',selected === group.id ? 'page' : 'false');
-      b.append(node('span','nav-symbol',group.id === 'all' ? '▦' : '▱'),node('span','group-name',group.name),node('span','nav-count',group.id === 'all' ? data.bookmarks.length : byGroup.get(group.id).length));
-      b.addEventListener('click',() => { selected = group.id; render(); }); nav.append(b);
-    }
-    const sections = $('site-groups'); sections.replaceChildren();
-    for (const [index,group] of data.groups.entries()) {
-      if (selected !== 'all' && selected !== group.id) continue;
-      const sites = filtered.get(group.id),ordered=byGroup.get(group.id),positions=new Map(ordered.map((s,index)=>[s.id,index]));
-      if (query && !sites.length) continue;
-      const section = node('section','site-section'); section.dataset.groupId = group.id;
-      const heading = node('div','group-heading'), title = node('h2','',group.name); title.append(node('span','group-size',sites.length));
-      const controls = node('div','group-controls');
-      controls.append(action(`向前移动分组：${group.name}`,'‹',() => mutate({type:'group.move',id:group.id,direction:-1},'navigation-error'),index === 0,`group:${group.id}:previous`),action(`向后移动分组：${group.name}`,'›',() => mutate({type:'group.move',id:group.id,direction:1},'navigation-error'),index === data.groups.length-1,`group:${group.id}:next`),action(`编辑分组：${group.name}`,'⋯',() => openGroup(group),false,`group:${group.id}:edit`),action(`收藏网站到：${group.name}`,'＋',() => openSite(null,group.id),false,`group:${group.id}:add`));
-      heading.append(title,controls); section.append(heading);
-      const grid = node('ul','site-grid');
-      for (const site of sites) {
-        const card = node('li','site-card'); card.dataset.siteId = site.id;
-        const link = node('a','site-link'); link.href = site.url; link.target = data.preferences.openInNewTab ? '_blank' : '_self'; link.rel = 'noopener noreferrer';
-        link.dataset.focusKey=`site:${site.id}:link`;
-        const host = new URL(site.url).hostname.replace(/^www\./,'');
-        const icon = node('span','site-icon',host.slice(0,1).toUpperCase()); icon.setAttribute('aria-hidden','true');
-        const hue = Array.from(host).reduce((sum,char) => sum + char.charCodeAt(0),0) % 360;
-        icon.style.backgroundColor = `hsl(${hue} 35% 94%)`; icon.style.color = `hsl(${hue} 30% 36%)`;
-        const copy = node('span','site-copy'); copy.append(node('strong','',site.title),node('span','site-host',host)); link.append(icon,copy);
-        const controls = node('div','site-controls');
-        const position = positions.get(site.id);
-        controls.append(action(`向前移动网站：${site.title}`,'‹',() => mutate({type:'bookmark.move',id:site.id,direction:-1},'navigation-error'),position === 0 || Boolean(query),`site:${site.id}:previous`),action(`向后移动网站：${site.title}`,'›',() => mutate({type:'bookmark.move',id:site.id,direction:1},'navigation-error'),position === ordered.length-1 || Boolean(query),`site:${site.id}:next`),action(`编辑网站：${site.title}`,'⋯',() => openSite(site),false,`site:${site.id}:edit`));
-        card.append(link,controls); grid.append(card);
+    if(!data)return;const restore=preserveFocus($('site-groups'));applyPreferences();
+    const query=$('site-search').value.trim().toLowerCase(),visible=data.bookmarks.filter(s=>`${s.title} ${s.url}`.toLowerCase().includes(query));
+    $('site-total').textContent=query?`找到 ${visible.length} 个收藏`:`${data.groups.length} 个分组 · ${data.bookmarks.length} 个收藏`;
+    const container=$('site-groups');container.className=folders&&!query?'folder-grid':'all-sites';container.replaceChildren();
+    for(const [index,group] of data.groups.entries()) {
+      const sites=data.bookmarks.filter(s=>s.groupId===group.id);
+      if(folders&&!query){
+        const tile=node('div','folder-tile'),button=node('button','folder-button');button.dataset.focusKey=`group:${group.id}:filter`;button.setAttribute('aria-label',`打开分组：${group.name}，${sites.length} 个网站`);
+        const preview=node('span','folder-preview');for(const site of sites.slice(0,9))preview.append(icon(site,true));if(!sites.length)preview.append(node('span','folder-blank','＋'));
+        button.append(preview,node('span','folder-label',group.name),node('span','folder-size',`${sites.length} 个网站`));
+        button.addEventListener('click',()=>{selected=group.id;$('folder-search').value='';renderFolder();showDialog('folder-dialog','all-groups-button');});tile.append(button);
+        if(managing){const controls=node('div','group-controls');controls.append(action(`向前移动分组：${group.name}`,'‹',()=>mutate({type:'group.move',id:group.id,direction:-1},'navigation-error'),index===0,`group:${group.id}:previous`),action(`向后移动分组：${group.name}`,'›',()=>mutate({type:'group.move',id:group.id,direction:1},'navigation-error'),index===data.groups.length-1,`group:${group.id}:next`),action(`编辑分组：${group.name}`,'⋯',()=>openGroup(group),false,`group:${group.id}:edit`));tile.append(controls);}container.append(tile);
+      }else{
+        const matches=sites.filter(s=>visible.includes(s));if(query&&!matches.length)continue;
+        const section=node('section','site-section'),heading=node('div','group-heading');heading.append(node('h2','',group.name),action(`编辑分组：${group.name}`,'⋯',()=>openGroup(group),false,`group:${group.id}:edit`));
+        const list=node('ul','site-grid');list.append(...matches.map(s=>siteCard(s,sites,query)));section.append(heading,list);container.append(section);
       }
-      if (!sites.length) { const add = node('button','add-site-placeholder','＋ 收藏网站到此分组'); add.dataset.focusKey=`group:${group.id}:first-site`; add.addEventListener('click',() => openSite(null,group.id)); const item=node('li');item.append(add);grid.append(item); }
-      section.append(grid); sections.append(section);
     }
-    $('site-empty').hidden = !query || visible.length > 0;
-    // A dedicated first-run state leaves group controls available above it.
-    if (!data.bookmarks.length && !query) { $('site-empty').hidden = false; $('site-empty-title').textContent = '把常去的网站放在这里'; $('site-empty-copy').textContent = '按工作、阅读或生活分组，打开新标签页就能找到。'; $('site-empty-action').textContent = '收藏第一个网站'; }
-    else if (query) { $('site-empty-title').textContent = '没有找到匹配的网站'; $('site-empty-copy').textContent = '试试网站名称或域名，也可以清空搜索查看全部。'; $('site-empty-action').textContent = '清空搜索'; }
-    restoreNav(); restoreSites();
+    $('site-empty').hidden=data.bookmarks.length>0&&(!query||visible.length>0);
+    $('site-empty-title').textContent=query?'没有找到匹配的收藏':'收藏你的日常。';$('site-empty-copy').textContent=query?'试试名称或域名，或使用右侧按钮搜索网页。':'从一个网站、一个分组开始，整理属于自己的空间。';$('site-empty-action').textContent=query?'清空搜索':'收藏第一个网站';
+    $('all-groups-button').setAttribute('aria-pressed',String(!folders));$('all-groups-button').querySelector('span').textContent=folders?'全部网站':'分组视图';
+    $('edit-layout-button').setAttribute('aria-pressed',String(managing));$('edit-layout-button').textContent=managing?'完成管理':'管理';
+    renderFolder();restore();
   }
   function openSite(site = null, groupId = selected === 'all' ? 'default' : selected) {
     if (!data || busy) return;
@@ -99,7 +94,10 @@ export async function initNavigation({send,toast}) {
   $('delete-site-button').addEventListener('click',async () => { if (await mutate({type:'bookmark.remove',id:editingSite.id},'site-error',siteRevision)) { $('site-dialog').close(); toast('收藏已删除'); } });
   $('delete-group-button').addEventListener('click',async () => { if (await mutate({type:'group.remove',id:editingGroup.id},'group-error',groupRevision)) { $('group-dialog').close(); toast('分组已删除，网站已保留到默认分组'); } });
   $('new-group-button').addEventListener('click',() => openGroup()); $('add-site-button').addEventListener('click',() => openSite());
-  $('all-groups-button').addEventListener('click',() => { selected = 'all'; $('site-search').value = ''; render(); });
+  $('all-groups-button').addEventListener('click',()=>{folders=!folders;$('site-search').value='';render();});
+  $('edit-layout-button').addEventListener('click',()=>{managing=!managing;render();});
+  $('folder-search').addEventListener('input',renderFolder);$('folder-add').addEventListener('click',()=>openSite(null,selected));$('folder-edit').addEventListener('click',()=>openGroup(data.groups.find(g=>g.id===selected)));
+  $('folder-dialog').addEventListener('close',()=>{selected='all';});
   $('site-search').addEventListener('input',() => data && render());
   $('site-empty-action').addEventListener('click',() => { if ($('site-search').value) { $('site-search').value = ''; render(); } else openSite(); });
   for (const [id,key] of [['pref-new-tab','openInNewTab'],['pref-knowledge','showKnowledge'],['pref-compact','compact']]) $(id).addEventListener('change',event => mutate({type:'preferences.update',changes:{[key]:event.target.checked}},'preferences-error'));

@@ -1,5 +1,6 @@
 import {ApiError, createClient, errorValue, normalizeServer, permissionOrigin, validateTask} from './api.mjs';
 import {createNavigationStore} from './navigation.mjs';
+import {createAppearanceStore} from './appearance.mjs';
 const resources = {tasks: '/api/tasks', status: '/api/status', autosync: '/api/autosync'};
 // Only in-flight coordination lives in memory; all user data is read from storage.
 function serialLane() {
@@ -20,6 +21,7 @@ function validateResource(key, value) {
 }
 export function createController({storage, permissions, fetcher = fetch, now = () => Date.now(), revision = () => crypto.randomUUID()}) {
   const navigation = createNavigationStore({storage,revision});
+  const appearance = createAppearanceStore({storage,revision});
   const localLane = serialLane(), nasLane = serialLane();
   let pendingSnapshot = null;
   const client = config => createClient(config, fetcher);
@@ -80,6 +82,21 @@ export function createController({storage, permissions, fetcher = fetch, now = (
         return {configured: false};
       }
       case 'snapshot': return snapshot();
+      case 'knowledge.list': case 'knowledge.read': {
+        const c = await requireConfig(message.revision);
+        let path;
+        if (message.type === 'knowledge.list') {
+          if (typeof message.query !== 'string' || message.query.length > 300) throw new ApiError('QUERY_INVALID','检索词不能超过 300 个字符');
+          path = message.query.trim() ? '/api/search?q='+encodeURIComponent(message.query.trim())+'&limit=20' : '/api/recent?limit=20';
+        } else {
+          if (typeof message.path !== 'string' || !message.path.endsWith('.md') || message.path.length > 4096 || message.path.startsWith('/') || message.path.includes('\\') || message.path.split('/').some(p=>p==='..'||p==='.'||!p)) throw new ApiError('PATH_INVALID','知识文件路径无效');
+          path = '/api/read?path='+encodeURIComponent(message.path);
+        }
+        const result = await client(c)(path); await ensureCurrent(c);
+        if (message.type === 'knowledge.list' && !Array.isArray(message.query.trim() ? result.results : result.records)) throw new ApiError('RESPONSE_INVALID','知识列表格式无效');
+        if (message.type === 'knowledge.read' && typeof result.content !== 'string') throw new ApiError('RESPONSE_INVALID','知识内容格式无效');
+        return result;
+      }
       case 'create': case 'update': case 'complete': {
         const c = await requireConfig(message.revision);
         const known = (await storage.get('snapshot')).snapshot;
@@ -116,6 +133,7 @@ export function createController({storage, permissions, fetcher = fetch, now = (
   }
   return async message => {
     if (!message || typeof message !== 'object' || typeof message.type !== 'string') throw new ApiError('MESSAGE_INVALID','不支持的插件操作');
+    if (message.type.startsWith('appearance.')) return localLane(() => appearance(message));
     if (/^(navigation\.|bookmark\.|group\.|preferences\.)/.test(message.type)) return localLane(() => navigation(message));
     if (message.type !== 'snapshot') return nasLane(() => dispatch(message));
     if (!pendingSnapshot) {

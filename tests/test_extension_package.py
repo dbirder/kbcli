@@ -17,6 +17,7 @@ def test_package_allowlist_excludes_credentials_and_test_shims(tmp_path):
     source = tmp_path / "source"
     source.mkdir()
     for name in builder.FILES:
+        (source / name).parent.mkdir(parents=True, exist_ok=True)
         (source / name).write_bytes((ROOT / "extensions/chrome-kb" / name).read_bytes())
     (source / "service.env").write_text("NEVER_SHIP=private")
     (source / "chrome-shim.mjs").write_text("test-only chrome mock")

@@ -37,7 +37,7 @@ python3 /path/to/new-test-vault/.agents/skills/knowledge-maintain/scripts/run_kb
 
 ## Chrome 插件
 
-插件版本独立维护在 `extensions/chrome-kb/manifest.json`，当前为 0.2.1；配套 kbcli 服务为 0.1.2。提交前运行：
+插件版本独立维护在 `extensions/chrome-kb/manifest.json`，当前为 0.4.1；配套 kbcli 服务为 0.1.2。提交前运行：
 
 ```bash
 node --test tests/extension/*.test.mjs
@@ -45,7 +45,9 @@ uv run --locked pytest -q
 python3 scripts/build_extension.py --output /path/to/new-release/chrome-kb
 ```
 
-输出父目录中会同时生成 `chrome-kb-0.2.1.zip`，目录或同版本 ZIP 已存在时拒绝覆盖；重新构建使用新的输出父目录。构建器仅复制白名单资源并生成哈希清单，开发技能、测试 shim、配置和凭据不进入扩展包。Git 提交包含源码、测试、说明、截图和官方技能的来源/许可证；ZIP 与解压产物继续留在被忽略的 dist 目录中。
+输出父目录中会同时生成 `chrome-kb-0.4.1.zip`，目录或同版本 ZIP 已存在时拒绝覆盖；重新构建使用新的输出父目录。构建器仅复制白名单资源并生成哈希清单，开发技能、测试 shim、配置和凭据不进入扩展包。Git 提交包含源码、测试、说明、截图和官方技能的来源/许可证；ZIP 与解压产物继续留在被忽略的 dist 目录中。
+
+测试入口、隔离服务和真实点击场景见 [插件验证说明](../tests/extension/README.md)，本次 0.3.0–0.4.1 整理结果见 [提交验收](verification/chrome-0.4.1-release.md)。
 
 当前测试包含 Chrome API 替身与隔离知识库服务，不等于原生扩展安装验收。首次安装、主机访问弹窗、本地网络访问和 worker 终止/恢复仍需真实 Chrome 验证，见 [插件审查记录](chrome-extension-audit.md)。
 

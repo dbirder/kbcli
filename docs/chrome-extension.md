@@ -1,18 +1,18 @@
 # Chrome 新标签页插件
 
-代码位于 extensions/chrome-kb，扩展版本 0.2.1，配套服务接口为 kbcli 0.1.2。安装、连接与使用步骤见 [扩展 README](../extensions/chrome-kb/README.md)。
+代码位于 extensions/chrome-kb，扩展版本 0.4.1，配套服务接口为 kbcli 0.1.2。安装、连接与使用步骤见 [扩展 README](../extensions/chrome-kb/README.md)。
 
-![隔离测试环境的页面示例](images/chrome-kb-preview.png)
+![隔离测试环境的页面示例](images/chrome-kb-030-home.png)
 
 截图中的收藏与待办均为隔离测试示例；不包含真实知识内容或凭据。
 
-![设置抽屉](images/chrome-kb-settings.png)
+![当前设置抽屉](images/chrome-kb-041-settings.png)
 
 ## 页面与数据归属
 
-左侧为网站分组，主区域为收藏搜索及网站卡片，右侧为知识库侧栏，分为“待办”和“知识库与同步”两个页签。设置采用右侧抽屉，可调整打开方式、显示侧栏和卡片密度，管理收藏备份并配置 NAS。
+主页以离线山雾背景、时钟与搜索、磨砂分组文件夹为主，点击文件夹展开网站；可切换全部网站视图。“管理”展示分组排序入口。知识库默认收起，右侧按需展开“待办 / 知识 / 状态”；桌面与窄屏均使用原生模态 dialog 悬浮展示，背景主页布局保持不动；外部点击仅关闭最上层，焦点返回原入口。设置抽屉支持本地背景上传、遮罩、模糊、位置、色调、时钟、搜索引擎、收藏备份与 NAS 连接。设计参考与取舍见 [设计说明](chrome-newtab-design.md)。
 
-收藏、分组、排序和偏好存为本机独立 navigation 数据；待办仍通过 NAS 的 kbcli 修改 Markdown 并由原自动同步调度器处理。插件收藏当前不参与 Git 同步，NAS 不可用不影响收藏。默认不读取原生 Chrome 书签，也不请求 bookmarks 权限。
+收藏、分组、排序和偏好沿用本机 navigation v1；背景及外观独立存为 appearance，不改变旧数据，不进入收藏备份；待办仍通过 NAS 的 kbcli 修改 Markdown 并由原自动同步调度器处理。插件收藏当前不参与 Git 同步，NAS 不可用不影响收藏。默认不读取原生 Chrome 书签，也不请求 bookmarks 权限。
 
 收藏支持新增、修改、删除、跨分组移动及组内排序；分组支持新增、改名、排序及删除。删除分组将网站迁入默认分组，默认分组可改名、排序，不能删除。收藏备份使用独立 JSON 格式，导入合并、同组网址去重，校验失败整批不保存。多个标签页的本地写入由 service worker 排队并核对 revision，旧表单不会直接覆盖新版本。
 
@@ -20,13 +20,15 @@
 
 - newtab.html、style.css、app.mjs：中文新标签页、待办表单、筛选、错误和缓存状态。
 - navigation.mjs、navigation-ui.mjs：收藏数据校验、版本保护、分组与网站操作、显示偏好及备份导入导出。
+- appearance.mjs、appearance-ui.mjs、assets/mist.svg：外观版本校验、图片格式及体积限制、浏览器重编码与本地默认背景。
+- shell.mjs、knowledge-ui.mjs：响应式知识抽屉、最近文档、搜索和居中只读 Markdown 阅读；连接变化时关闭文章并丢弃旧请求结果。
 - background.mjs：扩展 service worker，同步注册消息入口，核对发送页面，等待存储访问限制初始化。
 - controller.mjs：独立的收藏与 NAS 请求队列，NAS 快照合并及缓存写入排序；队列只协调当前请求，用户状态持久化到 storage。
 - ui.mjs：列表重绘和弹窗关闭后的焦点恢复、字段错误状态与原生表单校验。
 - api.mjs、controller.mjs：固定路径请求、字段验证、文件哈希、缓存、身份与连接版本保护，可在 Node 中独立测试。
 - scripts/build_extension.py：仅打包显式白名单文件，同时生成资源哈希清单。
 
-扩展仅申请 storage 与运行时按需的 NAS 主机权限。用户令牌留在后台的本机配置中，业务消息快照仅返回公开连接信息、数据与错误；本地存储限 trusted contexts，不使用账号同步；这不是加密密码库，同一扩展的受信任页面仍可访问其本地存储。无任意 URL 代理、远程脚本、eval、HTML 知识渲染或生产 mock。标题、标签及错误通过 textContent 写入 DOM。
+扩展仅申请 storage 与运行时按需的 NAS 主机权限。用户令牌留在后台的本机配置中，业务消息快照仅返回公开连接信息、数据与错误；本地存储限 trusted contexts，不使用账号同步；这不是加密密码库，同一扩展的受信任页面仍可访问其本地存储。无任意 URL 代理、远程脚本、eval、原文 HTML 执行或生产 mock。标题、标签及错误通过 textContent 写入 DOM。
 
 页面以用户直接完成待办为设计前提，连接时通过 GET /api/status 的 role 验证 human。提交完成只发送 status=done 与预期哈希，避免混入内容修改。普通编辑沿用既有复核规则，agent 身份限制仍由服务端执行。
 
@@ -57,3 +59,35 @@
 ## 0.2.1 技能审查
 
 本轮使用项目内的 chrome-extensions 与 modern-web-guidance，详见 [审查结果](chrome-extension-audit.md)。本轮仅修复插件与测试、更新文档，不修改 NAS 服务和正式知识内容。
+
+## 0.3.x 新标签页改版
+
+![文件夹展开](images/chrome-kb-030-folder.png)
+
+![知识库抽屉](images/chrome-kb-030-drawer.png)
+
+背景文件经过浏览器重新编码后存入本机 appearance，最长边 2560px、保存值最大 2 MiB，避免占满 storage.local。原图限 15 MiB / 4000 万像素；解码、校验和存储失败均不替换旧背景。图片不进入 NAS、收藏备份或发布包。跨标签页变更有独立 revision，上传期间发生外部修改会拒绝旧版本保存。
+
+本轮交互、兼容边界和测试结果见 [新版验收记录](verification/chrome-newtab-0.3.0.md)。Chrome 最低版本仍为 120，无新增权限、远程脚本、第三方图标或统计请求。检索和预览复用 kbcli 0.1.2 已有只读接口，无需 NAS 升级。
+
+0.3.1 统一弹窗外部点击关闭，知识库与设置抽屉悬浮覆盖主页，不挤压收藏网格。原生 closedby 不可用时有 Chrome 120 兼容层，继续遵守保存/连接保护并清空设置令牌输入。详见 [悬浮与关闭验收](verification/chrome-dialogs-0.3.1.md)。
+
+## 0.4.0 抽屉细节与 Markdown 阅读
+
+统一三个页签的控件、文本层级和间距，修复知识搜索框与普通表单字段样式叠加产生的双重边框及高度错位。顶部连接与页签固定，内容独立滚动；切换页签保留各自滚动位置。
+
+文章从抽屉内纯文本切换为居中的只读弹窗；标题、列表、引用、表格和代码块由本地 markdown-it 15.0.3 解析后，以白名单 DOM 节点创建，不经过 innerHTML，不启用原文 HTML。相对 .md 链接继续读取库内文件，外链仅允许 HTTP/HTTPS；图片按链接或附件提示展示。解析器来源、哈希与许可证见 [vendor 说明](../extensions/chrome-kb/vendor/README.md)。
+
+![只读文章阅读](images/chrome-kb-040-article.png)
+
+三页签截图、问题分析、验证范围见 [0.4.0 验收记录](verification/chrome-reader-0.4.0.md)。
+
+## 0.4.1 设置真实点击修复
+
+图片位置和搜索引擎的三选一设置改为直接可见的原生单选组，避开原生下拉菜单交互；保存完成后保留键盘焦点。修正收藏偏好保存时误操作时钟开关的控件范围。
+
+本轮逐项使用真实鼠标点击、滑轨和文件选择器验证设置，不使用 selectOption 或模拟 change。详见 [设置验收记录](verification/chrome-settings-0.4.1.md)。
+
+## 当前版本整理
+
+本次源码整理覆盖 0.3.0–0.4.1，当前安装版本为 0.4.1。汇总见 [提交验收](verification/chrome-0.4.1-release.md)，复现命令与浏览器场景说明见 [测试入口](../tests/extension/README.md)。dist 产物不提交 Git，本次不创建版本 tag 或 GitHub Release。
