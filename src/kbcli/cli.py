@@ -452,7 +452,13 @@ def serve(ctx: typer.Context, host: str = "127.0.0.1", port: int = 8765, interva
     token = os.environ.get("KBCLI_USER_TOKEN", "")
     agent_token = os.environ.get("KBCLI_AGENT_TOKEN")
     uvicorn.run(
-        create_app(v, token, agent_token=agent_token, interval=interval),
+        create_app(
+            v,
+            token,
+            agent_token=agent_token,
+            interval=interval,
+            autosync_dir=os.environ.get("KBCLI_AUTOSYNC_STATE_DIR"),
+        ),
         host=host,
         port=port,
         workers=1,

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>KB 工作台</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<a class="skip-link" href="#navigation-panel">跳到网站收藏</a>
+<a class="skip-link skip-knowledge" href="#knowledge-panel">跳到知识库</a>
+<div class="workspace">
+  <aside class="rail" aria-label="网站分组">
+    <a class="brand" href="newtab.html"><span class="brand-mark" aria-hidden="true">k<span>b</span></span><span>我的起始页<span class="brand-caption">网站与知识，放在一起</span></span></a>
+    <div class="space-label"><span class="space-dot"></span>我的收藏</div>
+    <nav id="group-nav" aria-label="筛选网站分组"></nav>
+    <div class="rail-bottom"><button id="settings-button" class="settings-button">⚙ <span>设置</span></button><span class="rail-version">KB 工作台 · 0.2.1</span></div>
+  </aside>
+  <main>
+    <header class="page-header"><div><p id="date-label" class="date-label"></p><h1>从这里，开始今天。</h1><p class="intro">常去的网站，手边的知识。</p></div><button id="show-knowledge-button" class="secondary" hidden>显示知识库</button></header>
+    <div class="content-grid">
+      <section id="navigation-panel" class="navigation-panel" aria-label="网站收藏" tabindex="-1">
+        <div class="sites-toolbar"><label class="search site-search" for="site-search"><span aria-hidden="true">⌕</span><input id="site-search" type="search" placeholder="搜索收藏的网站或网址" aria-label="搜索网站"></label><button id="add-site-button" class="primary">＋ 收藏网站</button></div>
+        <p id="navigation-error" class="form-error" role="alert" hidden></p>
+        <div class="collection-summary"><span id="site-total" role="status">本机收藏</span><div class="collection-actions"><button id="new-group-button" class="text-link">＋ 新建分组</button><button id="all-groups-button" class="text-link">全部分组</button></div></div>
+        <div id="site-groups"></div>
+        <div id="site-empty" class="site-empty" hidden><span class="empty-bookmark" aria-hidden="true">☆</span><h2 id="site-empty-title">把常去的网站放在这里</h2><p id="site-empty-copy">按工作、阅读或生活分组，打开新标签页就能找到。</p><button id="site-empty-action" class="secondary">收藏第一个网站</button></div>
+        <p class="local-note">收藏保存在当前浏览器，无需连接 NAS。</p>
+      </section>
+      <aside id="knowledge-panel" class="knowledge-panel" aria-label="知识库" tabindex="-1">
+        <div class="knowledge-heading"><h2>手边的知识库</h2><button id="refresh-button" class="icon-button" aria-label="刷新知识库" title="刷新知识库">↻</button></div>
+        <div class="connection-line"><span id="connection-dot" class="status-dot"></span><span id="connection-label">尚未连接 NAS</span></div><span id="last-refresh" class="quiet"></span>
+        <div id="banner" class="banner" role="status" hidden></div>
+        <div class="knowledge-tabs" role="tablist" aria-label="知识库内容"><button id="tasks-tab" role="tab" aria-selected="true" aria-controls="tasks-view" class="selected">待办</button><button id="status-tab" role="tab" aria-selected="false" aria-controls="status-view" tabindex="-1">知识库与同步</button></div>
+        <div id="tasks-view" role="tabpanel" aria-labelledby="tasks-tab">
+    <nav id="filters" aria-label="筛选待办">
+      <button class="nav-item selected" data-filter="pending"><span class="nav-symbol">◷</span>待处理<span class="nav-count" data-count="pending">—</span></button>
+      <button class="nav-item" data-filter="doing"><span class="nav-symbol">◉</span>进行中<span class="nav-count" data-count="doing">—</span></button>
+      <button class="nav-item" data-filter="done"><span class="nav-symbol">✓</span>已完成<span class="nav-count" data-count="done">—</span></button>
+      <button class="nav-item" data-filter="all"><span class="nav-symbol">▤</span>全部待办<span class="nav-count" data-count="all">—</span></button>
+      <button class="nav-item" data-filter="cancelled"><span class="nav-symbol">−</span>已取消<span class="nav-count" data-count="cancelled">—</span></button>
+    </nav>
+      <section class="task-panel" aria-labelledby="list-heading">
+        <div class="section-heading"><div><h2 id="list-heading">待处理</h2><span id="list-caption" class="quiet">连接知识库后，你的待办会出现在这里</span></div><button id="add-button" class="primary" disabled><span aria-hidden="true">＋</span> 新增待办</button></div>
+        <label class="search" for="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="查找标题或标签" aria-label="查找待办"></label>
+        <ul id="task-list" class="task-list"></ul>
+        <div id="empty" class="empty"><div class="empty-drawing" aria-hidden="true"><span></span><span></span><span></span><i>✓</i></div><h3 id="empty-title">让待办和知识，回到自己的空间。</h3><p id="empty-copy">连接 NAS 后，即可在这里管理你的待办。</p><button id="empty-action" class="secondary">连接知识库</button></div>
+        <footer class="list-footer"><span id="list-total" role="status">待办数据尚未加载</span><span>保存到 NAS 后由后台同步</span></footer>
+      </section>
+        </div>
+        <div id="status-view" role="tabpanel" aria-labelledby="status-tab" hidden>
+      <aside class="insights" aria-label="知识库和同步状态">
+        <section class="vault-section"><div class="aside-heading"><span class="little-book" aria-hidden="true">▥</span><h2>知识库</h2><span id="vault-badge" class="badge neutral">未连接</span></div><div class="vault-count"><strong id="record-count">—</strong><span>条内容</span></div><div id="directory-counts" class="directory-counts"><span>笔记 <b>—</b></span><span>来源 <b>—</b></span><span>项目 <b>—</b></span></div><dl class="detail-list"><div><dt>规范检查</dt><dd id="schema-state">等待连接</dd></div><div><dt>检索索引</dt><dd id="index-state">等待连接</dd></div><div><dt>工具待提交</dt><dd id="pending-state">—</dd></div></dl></section>
+        <section class="sync-section"><div class="aside-heading"><h2>自动同步</h2><span id="sync-dot" class="status-dot"></span></div><h3 id="sync-heading">等待连接 NAS</h3><p id="sync-description">文件保存、Git 同步和检索索引会分别展示。</p><dl class="detail-list"><div><dt>最近成功</dt><dd id="sync-last">—</dd></div><div><dt>下次尝试</dt><dd id="sync-next">—</dd></div><div><dt>同步频率</dt><dd id="sync-interval">—</dd></div></dl><div class="git-line"><span>Git</span><strong id="git-state">等待连接</strong></div><p id="git-caption" class="aside-note">仅展示状态，冲突需要在 NAS 上处理。</p></section>
+        <div class="side-note"><span aria-hidden="true">⌂</span><p>内容在自己的 NAS 上。<br>收藏保存在浏览器，待办保存在 NAS。</p></div>
+      </aside>
+        </div>
+        <p id="service-version" class="service-version"></p>
+      </aside>
+    </div>
+  </main>
+</div>
+<dialog id="settings-dialog" class="settings-drawer" aria-labelledby="settings-title">
+  <div class="dialog-heading"><div><p class="dialog-kicker">我的起始页</p><h2 id="settings-title">设置</h2></div><button class="close-button" type="button" data-close="settings-dialog" aria-label="关闭设置">×</button></div>
+  <section class="settings-section" aria-labelledby="display-title"><h3 id="display-title">浏览与显示</h3>
+    <label class="toggle-row" for="pref-new-tab"><span>在新标签页打开网站<small>保留当前起始页</small></span><input id="pref-new-tab" type="checkbox" role="switch"></label>
+    <label class="toggle-row" for="pref-knowledge"><span>显示知识库侧栏<small>待办、知识库与自动同步状态</small></span><input id="pref-knowledge" type="checkbox" role="switch"></label>
+    <label class="toggle-row" for="pref-compact"><span>紧凑网站卡片<small>同一屏放下更多收藏</small></span><input id="pref-compact" type="checkbox" role="switch"></label>
+    <p id="preferences-error" class="form-error" role="alert" hidden></p>
+  </section>
+  <section class="settings-section"><h3>收藏数据</h3><p class="dialog-copy">收藏与分组保存在当前浏览器，暂不通过 Git 或 Chrome 账号同步。卸载插件前请导出备份。</p><button id="export-sites-button" type="button" class="secondary">导出收藏备份</button><label class="import-label secondary" for="import-sites-input">导入收藏<input id="import-sites-input" type="file" accept="application/json,.json"></label><p id="backup-error" class="form-error" role="alert" hidden></p><p class="field-help">导入会新增分组和网站，保留已有收藏；备份不包含 NAS 地址或令牌。</p></section>
+  <section class="settings-section"><h3>知识库连接</h3>
+    <form id="settings-form"><p class="dialog-copy">填写 NAS 上的 kbcli 服务地址和用户令牌。</p><label for="server-input">服务地址<input id="server-input" type="url" required placeholder="http://192.168.6.100:8765" autocomplete="off" spellcheck="false"></label><label for="token-input">用户令牌<input id="token-input" aria-describedby="token-hint" type="password" placeholder="填写 NAS 服务的用户令牌" autocomplete="off" spellcheck="false"></label><p id="token-hint" class="field-help">令牌仅保存在此浏览器，不会通过 Chrome 账号同步。</p><p id="settings-error" class="form-error" role="alert" hidden></p><div class="dialog-actions"><button id="disconnect-button" type="button" class="text-button" hidden>断开并清除连接缓存</button><button id="connect-button" type="submit" class="primary">连接并保存</button></div></form>
+  </section><p class="drawer-footer">KB 工作台 0.2.1</p>
+</dialog>
+<dialog id="site-dialog" aria-labelledby="site-dialog-title"><form id="site-form"><div class="dialog-heading"><h2 id="site-dialog-title">收藏网站</h2><button type="button" class="close-button" data-close="site-dialog" aria-label="关闭网站编辑">×</button></div><label for="site-title">网站名称<input id="site-title" required maxlength="100" placeholder="例如：团队文档" autocomplete="off"></label><label for="site-url">网址<input id="site-url" required maxlength="4096" placeholder="https://example.com" autocomplete="off" spellcheck="false"></label><label for="site-group">所属分组<select id="site-group"></select></label><p id="site-error" class="form-error" role="alert" hidden></p><div class="dialog-actions"><button id="delete-site-button" type="button" class="text-button" hidden>删除这个收藏</button><button type="submit" class="primary" id="save-site-button">保存网站</button></div></form></dialog>
+<dialog id="group-dialog" aria-labelledby="group-dialog-title"><form id="group-form"><div class="dialog-heading"><h2 id="group-dialog-title">新建分组</h2><button type="button" class="close-button" data-close="group-dialog" aria-label="关闭分组编辑">×</button></div><label for="group-name">分组名称<input id="group-name" required maxlength="40" placeholder="例如：工作、阅读、生活" autocomplete="off"></label><p id="group-delete-hint" class="field-help" hidden>删除此分组后，其中的网站会移入常用分组。</p><p id="group-error" class="form-error" role="alert" hidden></p><div class="dialog-actions"><button id="delete-group-button" type="button" class="text-button" hidden>删除分组并移入常用</button><button type="submit" class="primary" id="save-group-button">保存分组</button></div></form></dialog>
+<dialog id="task-dialog" class="task-dialog" aria-labelledby="task-dialog-title"><form id="task-form"><div class="dialog-heading"><h2 id="task-dialog-title">新增待办</h2><button class="close-button" type="button" data-close="task-dialog" aria-label="关闭待办编辑">×</button></div><label for="task-title">要做什么<input id="task-title" required maxlength="300" placeholder="写下一个具体的行动" autocomplete="off"></label><div class="form-columns"><label for="task-due">截止日期<input id="task-due" type="date"></label><label id="task-status-label" for="task-status">状态<select id="task-status"><option value="todo">待办</option><option value="doing">进行中</option><option value="done" disabled>已完成</option><option value="cancelled">已取消</option></select></label></div><label for="task-tags">标签<input id="task-tags" placeholder="用逗号分隔，例如：工作，阅读" autocomplete="off"></label><p id="task-error" class="form-error" role="alert" hidden></p><div id="conflict-box" class="conflict-box" hidden><strong>服务端有更新，你的输入已保留。</strong><p id="conflict-latest"></p><button id="load-latest" type="button" class="secondary">用最新内容重新编辑</button></div><div class="dialog-actions"><button type="button" class="secondary" data-close="task-dialog">取消</button><button id="save-task-button" type="submit" class="primary">保存待办</button></div></form></dialog>
+<div id="toast" class="toast" role="status" hidden></div>
+<script type="module" src="app.mjs"></script>
+</body></html>

@@ -1,8 +1,8 @@
 # kbcli
 
-Python 开发的 Markdown 知识库工具。这个仓库同时维护程序源码、knowledge-maintain skill、命令说明与安装器，是工具使用方式的唯一维护来源。当前版本 v0.1.1 提供本地 CLI、稳定 JSON 输出和同一核心的 HTTP 服务；Markdown 为数据源，索引、日志和运行环境保存在知识库外。
+Python 开发的 Markdown 知识库工具。这个仓库同时维护程序源码、knowledge-maintain skill、命令说明与安装器，是工具使用方式的唯一维护来源。当前版本 v0.1.2 提供本地 CLI、稳定 JSON 输出和同一核心的 HTTP 服务；Markdown 为数据源，索引、日志和运行环境保存在知识库外。
 
-当前是可本地试用的 MVP：Chrome 插件、MCP 和人工批准命令尚未实现。serve 本身只维护索引；NAS 可单独部署 [自动同步调度器](docs/nas-autosync.md)，复用现有 HTTP 同步接口。实现边界见 [架构说明](docs/architecture/README.md)，版本整理见 [变更记录](CHANGELOG.md)，构建与验收见 [发布流程](docs/releasing.md)。
+当前是可本地试用的 MVP：[Chrome 新标签页插件](docs/chrome-extension.md) 已提供分组网站收藏、知识库侧栏、待办管理和状态展示；MCP 和人工批准命令尚未实现。serve 本身只维护索引；NAS 可单独部署 [自动同步调度器](docs/nas-autosync.md)，复用现有 HTTP 同步接口。实现边界见 [架构说明](docs/architecture/README.md)，版本整理见 [变更记录](CHANGELOG.md)，构建与验收见 [发布流程](docs/releasing.md)。
 
 ## 安装 knowledge-maintain skill
 
@@ -128,8 +128,16 @@ dist/knowledge-maintain/           构建产物，不手工维护
 ```bash
 uv run pytest -q
 uv run ruff check src tests scripts
+node --test tests/extension/*.test.mjs
 ```
 
 测试覆盖中文检索与原文定位、同 stat 修改、改名与删除、Schema 路由、旧哈希拒绝、评论保留、并发修改、完成任务不重新审核、API 角色、远端 CLI、写入日志恢复和两个临时 Git 工作副本。
 
-v0.1 不提供人工审核批准命令、MCP 或 Chrome 插件；Git 分叉需要人工整合。watch/serve 采用周期核验，后台服务默认只维护索引，Git 同步需要显式调用。需要手工修复的 YAML、复杂 Obsidian 块与 Wiki 链接语义仍有后续工作。
+当前不提供人工审核批准命令或 MCP；Git 分叉需要人工整合。watch/serve 采用周期核验，后台服务默认只维护索引，Git 同步需要显式调用。需要手工修复的 YAML、复杂 Obsidian 块与 Wiki 链接语义仍有后续工作。
+
+
+## Chrome 新标签页插件
+
+从 [extensions/chrome-kb](extensions/chrome-kb/README.md) 加载未打包扩展，或运行 `python3 scripts/build_extension.py` 构建安装包。收藏、分组和显示偏好保存在本机，可离线使用；知识库侧栏需要 kbcli 0.1.2+ 的用户身份与只读同步状态接口，详见 [插件说明](docs/chrome-extension.md)。
+
+本项目已在 `.agents/skills/` 安装 Google Chrome 官方 `modern-web-guidance` 和 `chrome-extensions` 开发技能，仅作用于本仓库。来源、使用方式与更新边界见 [项目开发技能](docs/development-skills.md)。

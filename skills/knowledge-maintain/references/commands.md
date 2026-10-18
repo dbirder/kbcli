@@ -1,4 +1,4 @@
-# kbcli v0.1.1 命令与接口
+# kbcli v0.1.2 命令与接口
 
 全局参数放在子命令之前，例如 `kbcli --vault /data/kb --state-dir /data/kbcli-state search 同步 --fresh`。结果为 JSON，日志与服务输出留在终端或本机。默认状态路径由 platformdirs 决定，以知识库绝对路径哈希区分；不能把状态目录设在知识库内。
 
@@ -108,3 +108,8 @@ python3 /path/to/kb/.agents/skills/knowledge-maintain/scripts/run_kbcli.py --vau
 ```
 
 加载 SKILL.md 不会自动安装依赖或启动常驻服务。初次安装应检查版本，NAS 更新发布包后再重启。不同安装器可能只复制被引用资源，本发布包需要完整目录安装。
+
+
+## Chrome 状态接口补充（v0.1.2）
+
+GET /api/status 返回当前认证 role。GET /api/autosync 使用同一 Bearer 鉴权，只读观察 KBCLI_AUTOSYNC_STATE_DIR 指定的库外调度目录，区分未配置、未启动、运行、重试、暂停、过期和不可读取，不提供暂停/恢复写入口。服务启动前在 NAS 本机环境配置该变量，不能写入同步知识库配置。Chrome 插件的操作范围见仓库 docs/chrome-extension.md。

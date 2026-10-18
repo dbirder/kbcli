@@ -35,7 +35,7 @@ class CommandRequest(BaseModel):
     params: dict = Field(default_factory=dict)
 
 
-def create_app(vault, user_token, *, agent_token=None, interval=3):
+def create_app(vault, user_token, *, agent_token=None, interval=3, autosync_dir=None):
     if not user_token or (agent_token and agent_token == user_token):
         raise KBError("AUTH_CONFIG_INVALID", "需要非空用户令牌，agent 令牌必须与之不同")
     if interval < 0.2:
@@ -138,8 +138,18 @@ def create_app(vault, user_token, *, agent_token=None, interval=3):
             raise KBError("NOT_A_TASK", "目标不是待办")
         if data.changes == {"status": "done"}:
             return operations.task_done(identifier, expect_hash=data.expect_hash, actor=principal)
+        changes = dict(data.changes)
+        unset = []
+        if "due" in changes and changes["due"] is None:
+            changes.pop("due")
+            unset.append("due")
+        if "status" in changes and changes["status"] != "done":
+            unset.append("completed_at")
         return operations.patch(
-            identifier, {"set": data.changes}, expect_hash=data.expect_hash, actor=principal
+            identifier,
+            {"set": changes, "unset": unset},
+            expect_hash=data.expect_hash,
+            actor=principal,
         )
 
     @app.get("/api/search")
@@ -196,11 +206,18 @@ def create_app(vault, user_token, *, agent_token=None, interval=3):
         from .status import snapshot
 
         value = snapshot(vault, portable=portable)
+        value["role"] = principal
         value["index"]["background_error"] = background_error
         return value
 
     @app.get("/api/review")
     def review(principal=Depends(actor)):
         return operations.review_list()
+
+    @app.get("/api/autosync")
+    def autosync(principal=Depends(actor)):
+        from .autosync_status import observe
+
+        return observe(autosync_dir, vault_root=vault.root)
 
     return app

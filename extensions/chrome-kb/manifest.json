@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "KB 工作台",
+  "description": "分组收藏网站，在新标签页查看知识库待办和 NAS 同步状态。",
+  "version": "0.2.1",
+  "minimum_chrome_version": "120",
+  "permissions": ["storage"],
+  "optional_host_permissions": ["http://*/*", "https://*/*"],
+  "chrome_url_overrides": {"newtab": "newtab.html"},
+  "background": {"service_worker": "background.mjs", "type": "module"},
+  "action": {"default_title": "打开 KB 工作台"},
+  "content_security_policy": {"extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none';"}
+}
