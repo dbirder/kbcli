@@ -1,0 +1,9 @@
+#!/bin/sh
+# Install in the NAS Compose project's scripts/ directory, or set KBCLI_COMPOSE_DIR.
+set -eu
+KBCLI_COMPOSE_DIR="${KBCLI_COMPOSE_DIR:-$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)}"
+exec docker compose --project-directory "$KBCLI_COMPOSE_DIR" exec -T kbcli-sync \
+  /usr/local/bin/python /opt/app/nas_autosync.py \
+  --server http://kbcli:8765 --token-env KBCLI_USER_TOKEN \
+  --journal /opt/data/kbcli/state/operations.sqlite3 \
+  --state-dir /opt/data/kbcli/autosync --poll 5 --pull 60 "$@"

@@ -1,0 +1,51 @@
+# Service definitions for the separated layout. Merge into the existing Compose file;
+# do not overlay onto old services that still mount the full hermes-data directory.
+services:
+  kbcli:
+    image: ${KBCLI_IMAGE:-kbcli:0.1.2-nas1}
+    restart: unless-stopped
+    init: true
+    user: "10000:10000"
+    stop_grace_period: 120s
+    env_file: [./config/kbcli/api.env]
+    environment:
+      HOME: /opt/data/home
+      TZ: Asia/Shanghai
+      KBCLI_AUTOSYNC_STATE_DIR: /opt/data/kbcli/autosync
+    ports: ["8765:8765"]
+    volumes:
+      - ./knowledge-base:/opt/data/knowledge-base
+      - ./kbcli-data/state:/opt/data/kbcli/state
+      - ./kbcli-sync-data:/opt/data/kbcli/autosync:ro
+      - ./config/kbcli/ssh:/opt/data/.ssh:ro
+    healthcheck:
+      test: [CMD, /usr/local/bin/python, /opt/app/healthcheck.py]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+  kbcli-sync:
+    image: ${KBCLI_IMAGE:-kbcli:0.1.2-nas1}
+    restart: unless-stopped
+    init: true
+    user: "10000:10000"
+    stop_grace_period: 120s
+    env_file: [./config/kbcli/sync.env]
+    command: [/opt/app/nas_autosync.py, --server, "http://kbcli:8765", --token-env, KBCLI_USER_TOKEN, --journal, /opt/data/kbcli/state/operations.sqlite3, --state-dir, /opt/data/kbcli/autosync, --poll, "5", --pull, "60", run]
+    volumes:
+      - ./kbcli-data/state:/opt/data/kbcli/state:ro
+      - ./kbcli-sync-data:/opt/data/kbcli/autosync
+    depends_on:
+      kbcli: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, /usr/local/bin/python, /opt/app/nas_autosync.py, --server, "http://kbcli:8765", --token-env, KBCLI_USER_TOKEN, --journal, /opt/data/kbcli/state/operations.sqlite3, --state-dir, /opt/data/kbcli/autosync, --poll, "5", --pull, "60", health]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}

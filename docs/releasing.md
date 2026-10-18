@@ -60,3 +60,9 @@ python3 scripts/build_extension.py --output /path/to/new-release/chrome-kb
 检查提交范围没有密钥、本机环境或知识内容，提交源码、测试、锁文件与文档后正常推送配置的分支。版本 tag 与 GitHub Release 在明确发布时单独创建；直接推送源码不代表产物已经上传到 Release 或 PyPI。
 
 NAS 使用完整发布包或已安装软件，保留知识库和库外状态卷，配置本机令牌后启动服务。更新软件后重启并检查 version、doctor、状态、任务接口；数据同步成功不代表服务已更新。
+
+## NAS 镜像构建
+
+运行 `python3 scripts/build_nas_image_context.py --output /path/to/new/context` 生成凭据隔离的 Docker 上下文；在 NAS 使用其中 Dockerfile 构建本地版本镜像。镜像、目录迁移、凭据保留及回滚见 [NAS 部署](nas-deployment.md)。软件版本不变时，部署镜像可使用独立的 nas 后缀版本；已运行镜像的 digest 记录在验收文档中。
+
+NAS 工具本轮提交范围与测试结果见 [2026-10-19 验收](verification/nas-release-2026-10-19.md)，执行入口见 [NAS 工具说明](../deploy/nas/README.md)。

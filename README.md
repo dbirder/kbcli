@@ -141,3 +141,7 @@ node --test tests/extension/*.test.mjs
 从 [extensions/chrome-kb](extensions/chrome-kb/README.md) 加载未打包扩展，或运行 `python3 scripts/build_extension.py` 构建安装包。收藏、分组和显示偏好保存在本机，可离线使用；知识库侧栏需要 kbcli 0.1.2+ 的用户身份与只读同步状态接口，详见 [插件说明](docs/chrome-extension.md)。
 
 本项目已在 `.agents/skills/` 安装 Google Chrome 官方 `modern-web-guidance` 和 `chrome-extensions` 开发技能，仅作用于本仓库。来源、使用方式与更新边界见 [项目开发技能](docs/development-skills.md)。
+
+## NAS 独立部署
+
+当前 NAS 将 Hermes、知识库、kbcli 状态与自动同步状态分目录挂载，API 和调度器运行独立的 kbcli 镜像。镜像构建、迁移、管理与回滚见 [NAS 部署说明](docs/nas-deployment.md)，实测结果见 [迁移验收](docs/verification/nas-layout-2026-10-18.md)。

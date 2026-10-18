@@ -1,5 +1,7 @@
 # NAS 自动同步
 
+当前 NAS 已采用 [独立镜像与数据分离布局](nas-deployment.md)，实测见 [迁移验收](verification/nas-layout-2026-10-18.md)。下文共享 hermes-data 的目录与 overlay 示例保留为旧部署兼容参考；新部署使用 compose.kbcli.yaml 和宿主机管理入口。
+
 scripts/nas_autosync.py 是独立的 Linux/NAS 调度程序，只依赖 Python 标准库。它通过已有 `/api/command` 调用 `sync(commit_tools=true)`，复用 kbcli 服务的写入锁、操作日志、哈希检查和 Git 快进策略。它不是新的知识写入入口，也不修改 v0.1.1 主程序或 skill 的发布指纹。
 
 ## 默认行为
