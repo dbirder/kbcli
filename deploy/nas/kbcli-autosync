@@ -1,0 +1,8 @@
+#!/bin/sh
+# Control operations use the existing agent token; background commits use the owner token.
+exec /usr/local/bin/python3 /opt/data/kbcli/automation/nas_autosync.py \
+  --server http://kbcli:8765 \
+  --token-file /opt/data/kbcli/agent-token \
+  --journal /opt/data/kbcli/state/operations.sqlite3 \
+  --state-dir /opt/data/kbcli/autosync \
+  --poll 5 --pull 60 "$@"

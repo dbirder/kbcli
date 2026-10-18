@@ -4,6 +4,8 @@
 
 本文描述当前实现和后续部署边界。参数与结果格式以 [命令说明](../../skills/knowledge-maintain/references/commands.md) 为准，默认配置以 [config.toml](../../src/kbcli/defaults/.kb/config.toml) 为准。图中的“待开发”“待部署”“待联调”表示尚未完成的部分。
 
+NAS 部署补充：可使用 [独立自动同步调度器](../nas-autosync.md) 调用 v0.1.1 的鉴权 sync API。该调度器不在主程序或 skill 发布包内，部署后提供工具写入自动提交、周期拉取与持久暂停。下文和架构图中“无后台调度”描述的是 v0.1.1 核心自身的行为。
+
 ## 架构图与范围
 
 - [整体部署图](personal-kb.html)：电脑、知识库 Git 远端、NAS 与访问端的协作关系。

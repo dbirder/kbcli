@@ -1,0 +1,46 @@
+# Overlay for an existing Compose project with a healthy `kbcli` service.
+# All relative paths resolve against that project's base Compose directory.
+services:
+  kbcli-sync:
+    image: "${KBCLI_SYNC_IMAGE:?Set KBCLI_SYNC_IMAGE to the existing kbcli image digest}"
+    restart: unless-stopped
+    init: true
+    user: "${KBCLI_SYNC_UID:-10000}:${KBCLI_SYNC_GID:-10000}"
+    entrypoint: ["/usr/local/bin/python3"]
+    command:
+      - /opt/data/kbcli/automation/nas_autosync.py
+      - --server
+      - http://kbcli:8765
+      - --token-env
+      - KBCLI_USER_TOKEN
+      - --journal
+      - /opt/data/kbcli/state/operations.sqlite3
+      - --state-dir
+      - /opt/data/kbcli/autosync
+      - --poll
+      - "5"
+      - --pull
+      - "60"
+      - run
+    environment:
+      HOME: /opt/data/home
+      TZ: Asia/Shanghai
+      PYTHONDONTWRITEBYTECODE: "1"
+    env_file:
+      - ./hermes-data/kbcli/service.env
+    volumes:
+      - ./hermes-data:/opt/data
+    depends_on:
+      kbcli:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/opt/data/kbcli/bin/kbcli-autosync", "health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

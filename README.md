@@ -2,7 +2,7 @@
 
 Python 开发的 Markdown 知识库工具。这个仓库同时维护程序源码、knowledge-maintain skill、命令说明与安装器，是工具使用方式的唯一维护来源。当前版本 v0.1.1 提供本地 CLI、稳定 JSON 输出和同一核心的 HTTP 服务；Markdown 为数据源，索引、日志和运行环境保存在知识库外。
 
-当前是可本地试用的 MVP：NAS 持续运行与 Hermes 真实流程待验收，Chrome 插件、MCP、人工批准命令和后台 Git 同步调度尚未实现。实现边界见 [架构说明](docs/architecture/README.md)，版本整理见 [变更记录](CHANGELOG.md)，构建与验收见 [发布流程](docs/releasing.md)。
+当前是可本地试用的 MVP：Chrome 插件、MCP 和人工批准命令尚未实现。serve 本身只维护索引；NAS 可单独部署 [自动同步调度器](docs/nas-autosync.md)，复用现有 HTTP 同步接口。实现边界见 [架构说明](docs/architecture/README.md)，版本整理见 [变更记录](CHANGELOG.md)，构建与验收见 [发布流程](docs/releasing.md)。
 
 ## 安装 knowledge-maintain skill
 
