@@ -1,13 +1,24 @@
+import {cacheFirstPaintBackground} from './first-paint.mjs';
+import {paintRange} from './controls.mjs';
 import {ENGINES} from './appearance.mjs';
 import {showFormError} from './ui.mjs';
 const $=id=>document.getElementById(id);
+export function wallpaperMime(bytes) {
+  const signature=Array.from(bytes,x=>String.fromCharCode(x)).join('');
+  if(signature.startsWith('\x89PNG\r\n\x1a\n'))return 'image/png';
+  if(bytes[0]===255&&bytes[1]===216&&bytes[2]===255)return 'image/jpeg';
+  if(signature.startsWith('RIFF')&&signature.slice(8,12)==='WEBP')return 'image/webp';
+  return null;
+}
 export async function prepareWallpaper(file) {
-  if (!['image/png','image/jpeg','image/webp'].includes(file.type) || file.size > 15*1024*1024 || !file.size) throw Error('请选择不超过 15 MiB 的 PNG、JPEG 或 WebP 图片');
-  const bytes = new Uint8Array(await file.slice(0,12).arrayBuffer());
-  const signature = [...bytes].map(x=>String.fromCharCode(x)).join('');
-  const valid = file.type === 'image/png' ? signature.startsWith('\x89PNG\r\n\x1a\n') : file.type === 'image/jpeg' ? bytes[0]===255 && bytes[1]===216 && bytes[2]===255 : signature.startsWith('RIFF') && signature.slice(8)==='WEBP';
-  if (!valid) throw Error('图片格式与文件内容不符，请重新选择');
-  const image = await createImageBitmap(file);
+  if (file.size > 15*1024*1024 || !file.size) throw Error('请选择不超过 15 MiB 的 PNG、JPEG 或 WebP 图片');
+  const bytes = new Uint8Array(await file.slice(0,12).arrayBuffer()),mime=wallpaperMime(bytes);
+  if (!mime) throw Error('不支持此图片内容，请选择 PNG、JPEG 或 WebP 图片');
+  // File.type comes from the filename on some systems. Trust the supported
+  // raster signature and decode with that MIME, then re-encode pixels to WebP.
+  let image;
+  try { image=await createImageBitmap(new Blob([file],{type:mime})); }
+  catch { throw Error('图片无法读取或已损坏，请重新下载后再试'); }
   try {
     if (!image.width || !image.height || image.width*image.height>40000000) throw Error('图片分辨率过大，请选择不超过 4000 万像素的图片');
     const ratio=Math.min(1,2560/Math.max(image.width,image.height)), canvas=document.createElement('canvas');
@@ -25,18 +36,18 @@ export async function initAppearance({send,toast}) {
   function render() {
     const root=document.documentElement;
     root.dataset.theme=data.theme;root.style.setProperty('--wallpaper-dim',data.dim/100);root.style.setProperty('--wallpaper-blur',data.blur+'px');
-    $('wallpaper-image').src=data.wallpaper?.dataURL || 'assets/mist.svg';$('wallpaper-image').style.objectPosition=data.position;
+    $('wallpaper-image').src=data.wallpaper?.dataURL || 'assets/mist.svg';$('wallpaper-image').style.objectPosition=data.position;void cacheFirstPaintBackground($('wallpaper-image'),data);
     $('wallpaper-preview').src=data.wallpaper?.dataURL || 'assets/mist.svg';$('wallpaper-name').textContent=data.wallpaper?.name || '山雾 · 内置背景';
     $('wallpaper-preview').style.objectPosition=data.position;$('wallpaper-preview').style.filter=`brightness(${1-data.dim/100}) blur(${data.blur/3}px)`;
     $('clock').hidden=!data.showClock; $('pref-clock').checked=data.showClock;
-    for(const key of ['dim','blur']) $('appearance-'+key).value=data[key];
+    for(const key of ['dim','blur']){const input=$('appearance-'+key);input.value=data[key];paintRange(input);}
     for(const key of ['position','engine']) document.querySelectorAll(`input[name="appearance-${key}"]`).forEach(input=>{input.checked=input.value===data[key];});
     $('dim-value').textContent=data.dim+'%';$('blur-value').textContent=data.blur+' px';
     $('web-search-button').textContent=ENGINES[data.engine].name+'搜索 ↗';
     document.querySelectorAll('button[data-theme]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.theme===data.theme)));
   }
-  async function load(){ try { data=await send({type:'appearance.get'});render(); } catch(e){showFormError('appearance-error',e);} }
-  const controls=()=>document.querySelectorAll('#appearance-section input,#appearance-section select,#appearance-section button');
+  async function load(){ try { data=await send({type:'appearance.get'});render(); } catch(e){if(!$('wallpaper-image').getAttribute('src'))$('wallpaper-image').src='assets/mist.svg';showFormError('appearance-error',e);} }
+  const controls=()=>document.querySelectorAll('#appearance-section input,#appearance-section select,#appearance-section button,#appearance-engine input,#pref-clock');
   async function update(changes,expectedRevision=data?.revision) {
     if(busy||!data)return;const focused=document.activeElement;busy=true;controls().forEach(n=>n.disabled=true);
     try{data=await send({type:'appearance.update',revision:expectedRevision,changes});render();showFormError('appearance-error',null);}

@@ -21,7 +21,11 @@ export function initKnowledge({send,getConnection}) {
       for(const record of records){
         if(typeof record.path!=='string')continue;
         const item=node('li',''),b=node('button','document-button'),icon=node('span','document-icon','▤'),copy=node('span','document-copy'),arrow=node('span','document-arrow','↗');b.type='button';b.dataset.focusKey='doc:'+record.path;b.setAttribute('aria-label','阅读文章：'+(record.title||record.path));icon.setAttribute('aria-hidden','true');arrow.setAttribute('aria-hidden','true');
-        copy.append(node('strong','',record.title||record.path),node('small','',record.path));if(record.snippet)copy.append(node('span','document-excerpt',record.snippet.slice(0,220)));if(record.stale)copy.append(node('small','document-stale','索引待更新 · 阅读当前文件'));
+        const category={notes:'笔记',sources:'来源',projects:'项目',tasks:'待办',daily:'日记',inbox:'收集'}[record.path.split('/')[0]]||'知识';
+        copy.append(node('strong','',record.title||record.path));const byline=node('span','document-byline');byline.append(node('span','document-category',category));copy.append(byline);
+        const date=record.updated_at?new Date(record.updated_at):record.filesystem_mtime_ns?new Date(Number(record.filesystem_mtime_ns)/1e6):null;
+        if(date&&!Number.isNaN(+date))byline.append(node('small','document-updated',new Intl.DateTimeFormat('zh-CN',{month:'short',day:'numeric'}).format(date)+' 更新'));
+        const path=node('small','document-location',record.path);path.title=record.path;copy.append(path);if(record.snippet)copy.append(node('span','document-excerpt',record.snippet.slice(0,220)));if(record.stale)copy.append(node('small','document-stale','索引待更新 · 阅读当前文件'));
         b.append(icon,copy,arrow);b.addEventListener('click',()=>void read(record));item.append(b);$('document-list').append(item);
       }restore();
     }catch(e){if(ticket!==listGeneration)return;$('knowledge-message').textContent='未能读取最新知识';showFormError('knowledge-error',e);}

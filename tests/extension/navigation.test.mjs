@@ -60,3 +60,22 @@ test('export copies only known bookmark fields and never carries injected metada
   const f=fixture();const data=await f.read();data.groups[0].token='private';data.bookmarks.push({id:'a',title:'文档',url:'https://example.com/',groupId:'default',secret:'private'});
   const output=JSON.stringify(exportNavigation(data));assert.ok(!output.includes('private'));
 });
+
+test('drag placement moves to any position and group, persists, and rejects stale or invalid targets atomically',async()=>{
+  const f=fixture();await f.read();await f.change('group.add',{name:'目标'});const target=f.state.groups[1].id;
+  for(const title of ['A','B','C'])await f.change('bookmark.add',{title,url:`https://${title}.example.com`,groupId:'default'});
+  const [a,b,c]=f.state.bookmarks;
+  await f.change('bookmark.place',{id:c.id,groupId:'default',beforeId:a.id});
+  assert.deepEqual(f.state.bookmarks.map(x=>x.title),['C','A','B']);
+  await f.change('bookmark.place',{id:a.id,groupId:target,beforeId:null});
+  assert.equal(f.state.bookmarks.find(x=>x.id===a.id).groupId,target);
+  await f.change('bookmark.place',{id:b.id,groupId:target,beforeId:a.id});
+  assert.deepEqual(f.state.bookmarks.filter(x=>x.groupId===target).map(x=>x.title),['B','A']);
+  const before=structuredClone(f.saved),revision=f.state.revision;
+  for(const args of [{id:c.id,groupId:'missing',beforeId:null},{id:c.id,groupId:'default',beforeId:a.id},{id:c.id,groupId:'default',beforeId:c.id},{id:c.id,groupId:'default',beforeId:'missing'}])await assert.rejects(f.change('bookmark.place',args));
+  assert.deepEqual(f.saved,before);
+  await f.change('group.place',{id:'default',beforeId:null});assert.equal(f.state.groups.at(-1).id,'default');
+  await assert.rejects(f.handle({type:'bookmark.place',id:c.id,groupId:target,beforeId:null,revision}),{code:'NAVIGATION_CHANGED'});
+  const reopened=await createNavigationStore({storage:f.storage})({type:'navigation.get'});assert.deepEqual(reopened,f.state);
+  assert.equal(reopened.bookmarks.length,3);
+});

@@ -1,14 +1,18 @@
-# kbcli v0.1.2 与个人知识库架构
+# kbcli v0.1.4 与个人知识库架构
 
-截至 2026-10-19，kbcli 已实现本地 CLI、HTTP API、规范校验、中文检索、受控写入、待办、Git 显式同步以及 knowledge-maintain skill 安装与更新。Chrome 新标签页插件 0.4.1 已提供分组文件夹、自定义背景、Markdown 知识阅读、知识库待办和状态抽屉；NAS 自动同步已有独立调度器和部署记录。原生 Chrome 安装、授权及 worker 重启仍待验收，实际 Hermes 业务流程与长期运行验证继续按部署记录跟进。
+截至 2026-10-19，kbcli 已实现本地 CLI、HTTP API、规范校验、中文检索、受控写入、待办、Git 显式同步以及 knowledge-maintain skill 安装与更新。Chrome 新标签页插件 0.6.1 已提供分组文件夹、自定义背景、Markdown 知识阅读、知识库待办和状态抽屉；NAS 自动同步已有独立调度器和部署记录。原生 Chrome 安装、授权及 worker 重启仍待验收，实际 Hermes 业务流程与长期运行验证继续按部署记录跟进。
 
 本文描述当前实现和后续部署边界。参数与结果格式以 [命令说明](../../skills/knowledge-maintain/references/commands.md) 为准，默认配置以 [config.toml](../../src/kbcli/defaults/.kb/config.toml) 为准。图中的“待开发”“待部署”“待联调”表示尚未完成的部分。
 
 NAS 部署补充：可使用 [独立自动同步调度器](../nas-autosync.md) 调用 v0.1.1 的鉴权 sync API。该调度器不在主程序或 skill 发布包内，部署后提供工具写入自动提交、周期拉取与持久暂停。下文和架构图中“无后台调度”描述的是 v0.1.1 核心自身的行为。
 
-Chrome 部署补充：0.4.1 新标签页（分组收藏、自定义背景、知识库抽屉与只读预览）及 0.1.2 只读同步状态接口见 [插件说明](../chrome-extension.md)。本文架构图保留 v0.1.1 设计快照，当前功能状态以插件说明和命令文档为准。
+Chrome 部署补充：0.6.1 新标签页（分组收藏、自定义背景、知识库抽屉与只读预览）及 0.1.2 只读同步状态接口见 [插件说明](../chrome-extension.md)。本文架构图保留 v0.1.1 设计快照，当前功能状态以插件说明和命令文档为准。
 
 当前 NAS 已拆分目录并使用独立 kbcli 镜像，挂载与进程边界见 [NAS 部署](../nas-deployment.md)。Hermes 只读访问客户端和知识库，调度器只读观察操作日志，正式数据统一由 API 写入。
+
+新增[浏览器备份模块](../chrome-backups.md)：插件 alarm 和持久 outbox 调用 kbcli 的专用用户接口，将每台设备的不可变 JSON 快照及去重壁纸写入 `assets/app-backups/chrome-kb`，经受控操作日志交给现有 Git 调度器。恢复由用户明确确认，保留本机撤销副本。
+
+共享同步：`workspace.mjs` 持久化设备共同版本与请求标记，轮询 `workspace.py` 接口；服务端在锁内比较版本，保存不可变共享 JSON 与保护快照，经原 Git 调度器推送。已升级与[机制说明](../chrome-workspace-sync.md)以当前实现为准，旧图仍是历史设计快照。
 
 ## 架构图与范围
 
@@ -23,7 +27,7 @@ Chrome 部署补充：0.4.1 新标签页（分组收藏、自定义背景、知�
 | HTTP API、远端 CLI | 已实现，NAS 独立镜像与只读正式链路通过验收 | 外网入口与长期运行验证 |
 | Git 后端 | 显式 fetch、快进、push、工具修改提交；独立 NAS 调度器负责周期调用、退避和持久暂停 | 历史分叉需人工整合；长期运行验收见部署记录 |
 | knowledge-maintain | 完整发布包、安装、更新、备份、回滚 | Hermes 上的真实检索与写入联调 |
-| Chrome 导航页插件 | 已实现 0.4.1，实际 MV3 加载待验收 | 分组收藏、自定义背景、知识库抽屉、Markdown 知识阅读、NAS 待办与状态展示 |
+| Chrome 导航页插件 | 已实现 0.6.1，实际 MV3 加载待验收 | 分组收藏、自定义背景、知识库抽屉、Markdown 知识阅读、NAS 待办与状态展示 |
 | MCP | 未实现，可选 | 有工具发现需求时适配现有核心或 HTTP |
 | 人工复核 | 仅 list/show 和审核有效性校验 | 批准入口、界面与工作流待补充 |
 
@@ -73,6 +77,7 @@ machine-state/                  每台机器独立，位于知识库外
 | `vault.py` | 配置、业务发现、Markdown/YAML、Schema、模板、引用、原文与哈希 |
 | `indexing.py` | SQLite FTS5、中文 bigram、BM25、属性筛选、增量刷新与 fresh |
 | `operations.py` | create/patch/fix、待办、预期哈希、文件锁、原子写入与操作恢复 |
+| `backups.py` | 固定目录、字段白名单、设备快照、壁纸去重及幂等备份接口 |
 | `git_sync.py` | Git 状态、受控提交、fetch、快进与 push |
 | `status.py`、`state.py` | 内容成熟度与结构分开统计，只读观察已有索引和日志 |
 | `autosync_status.py` | 脱敏、只读观察库外自动同步状态和暂停标记 |

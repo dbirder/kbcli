@@ -49,7 +49,7 @@ export function createClient(config, fetcher = fetch) {
       if (!value || typeof value !== 'object' || Array.isArray(value)) throw new ApiError('RESPONSE_INVALID', '服务返回了无法识别的数据', {writeUncertain: write});
       if (!response.ok || value.ok === false) {
         const code = value.error?.code || `HTTP_${response.status}`;
-        const messages = {UNAUTHORIZED: '令牌无效，请在连接设置中重新填写用户令牌', USER_ACTION_REQUIRED: '需要用户令牌才能执行此操作', FILE_CHANGED: '待办已在别处更新，请核对最新内容', SCHEMA_INVALID: '待办字段未通过服务端校验', LOCK_TIMEOUT: '服务正忙，请刷新核对后再操作'};
+        const messages = {WORKSPACE_CHANGED:'共享版本已变化，双方已保留，等待处理冲突', WORKSPACE_FORK:'共享历史出现分叉，请在 NAS 检查', WORKSPACE_INVALID:'共享数据校验失败，保留本机内容', BACKUP_INVALID:'备份内容未通过校验，原数据已保留', BACKUP_TOO_LARGE:'备份超过 4 MiB，请减少收藏或背景图片大小', BACKUP_EXISTS:'备份标识已有不同内容，请在 NAS 检查', BACKUP_NOT_FOUND:'找不到所选备份，请刷新备份列表', UNAUTHORIZED: '令牌无效，请在连接设置中重新填写用户令牌', USER_ACTION_REQUIRED: '需要用户令牌才能执行此操作', FILE_CHANGED: '待办已在别处更新，请核对最新内容', SCHEMA_INVALID: '待办字段未通过服务端校验', LOCK_TIMEOUT: '服务正忙，请刷新核对后再操作'};
         throw new ApiError(code, write && response.status >= 500 ? '服务未确认保存结果。请刷新核对，不要重复提交。' : messages[code] || `服务请求失败（${response.status}），请检查连接或 NAS 日志`, {httpStatus: response.status, writeUncertain: write && response.status >= 500});
       }
       if (value.ok !== true) throw new ApiError('RESPONSE_INVALID', '服务返回了无法识别的数据', {writeUncertain: write});

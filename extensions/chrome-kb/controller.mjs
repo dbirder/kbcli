@@ -1,6 +1,12 @@
 import {ApiError, createClient, errorValue, normalizeServer, permissionOrigin, validateTask} from './api.mjs';
+import {createIconBatch} from './icon-batch.mjs';
+import {createSiteAudit} from './site-audit.mjs';
+import {createWorkspace} from './workspace.mjs';
+import {createBackups} from './backup.mjs';
 import {createNavigationStore} from './navigation.mjs';
 import {createAppearanceStore} from './appearance.mjs';
+import {createCaptureStore} from './capture.mjs';
+import {fallbackBookmarkIcon,validateBookmarkIcon,MAX_ICONS_BYTES} from './bookmark-icon.mjs';
 const resources = {tasks: '/api/tasks', status: '/api/status', autosync: '/api/autosync'};
 // Only in-flight coordination lives in memory; all user data is read from storage.
 function serialLane() {
@@ -19,10 +25,13 @@ function validateResource(key, value) {
   if (key === 'status' && !['human','ai'].includes(value.role)) throw new ApiError('RESPONSE_INVALID','服务返回的身份信息无效，请检查 NAS 服务版本');
   return value;
 }
-export function createController({storage, permissions, fetcher = fetch, now = () => Date.now(), revision = () => crypto.randomUUID()}) {
+export function createController({storage, permissions, fetcher = fetch, now = () => Date.now(), revision = () => crypto.randomUUID(),readLegacyIcon=async()=>null,fetchBatchIcon=async()=>{throw new ApiError('ICON_FETCH_FAILED','图标获取环境不可用');}}) {
   const navigation = createNavigationStore({storage,revision});
   const appearance = createAppearanceStore({storage,revision});
   const localLane = serialLane(), nasLane = serialLane();
+  const capture=createCaptureStore({storage,navigation,now});
+  const iconBatch=createIconBatch({storage,navigation,localLane,fetchIcon:fetchBatchIcon,now,revision});
+  const audit=createSiteAudit({storage,permissions,navigation,localLane,fetcher,now,revision});
   let pendingSnapshot = null;
   const client = config => createClient(config, fetcher);
   const config = async () => (await storage.get('connection')).connection;
@@ -70,14 +79,20 @@ export function createController({storage, permissions, fetcher = fetch, now = (
         const probe = await client({server, token})('/api/status');
         if (probe.role !== 'human') throw new ApiError(probe.role === 'ai' ? 'USER_TOKEN_REQUIRED' : 'UPGRADE_REQUIRED', probe.role === 'ai' ? '这是 agent 令牌，请使用 NAS 服务的用户令牌' : '请将 kbcli 服务升级至 0.1.2 或以上');
         const c = {server, token, revision: revision()};
-        await storage.set({connection: c}); await storage.remove('snapshot');
+        await localLane(async()=>{
+          if ((await config())?.revision !== old?.revision) throw new ApiError('CONNECTION_CHANGED','连接设置已改变，请重新核对');
+          await storage.set({connection: c}); await storage.remove('snapshot');
+        });
         if (old && permissionOrigin(old.server) !== permissionOrigin(server)) await permissions.remove({origins: [permissionOrigin(old.server)]});
         return publicConfig(c);
       }
       case 'disconnect': {
         const c = await config();
         if ((message.revision ?? null) !== (c?.revision ?? null)) throw new ApiError('CONNECTION_CHANGED','连接设置已在其他标签页改变，请重新打开设置核对');
-        await storage.remove(['connection', 'snapshot']);
+        await localLane(async()=>{
+          if ((await config())?.revision !== c?.revision) throw new ApiError('CONNECTION_CHANGED','连接设置已改变，请重新核对');
+          await storage.remove(['connection', 'snapshot']);
+        });
         if (c) await permissions.remove({origins: [permissionOrigin(c.server)]});
         return {configured: false};
       }
@@ -131,8 +146,19 @@ export function createController({storage, permissions, fetcher = fetch, now = (
       default: throw new ApiError('MESSAGE_INVALID', '不支持的插件操作');
     }
   }
-  return async message => {
+  const backups=createBackups({storage,permissions,navigation,appearance,localLane,fetcher,now,revision});
+  const workspace=createWorkspace({storage,permissions,navigation,appearance,localLane,fetcher,now,revision,identity:async()=>{
+    let saved=(await storage.get('backup')).backup;
+    if(!saved){await backups.handle({type:'backup.status'});saved=(await storage.get('backup')).backup;}
+    return {deviceId:saved.deviceId,deviceName:saved.deviceName};
+  }});
+  const handle = async message => {
     if (!message || typeof message !== 'object' || typeof message.type !== 'string') throw new ApiError('MESSAGE_INVALID','不支持的插件操作');
+    if(message.type.startsWith('icons.'))return iconBatch.handle(message);
+    if(message.type.startsWith('audit.'))return audit.handle(message);
+    if(message.type.startsWith('capture.'))return localLane(()=>capture(message));
+    if (message.type.startsWith('workspace.')) return workspace.handle(message);
+    if (message.type.startsWith('backup.')) return backups.handle(message);
     if (message.type.startsWith('appearance.')) return localLane(() => appearance(message));
     if (/^(navigation\.|bookmark\.|group\.|preferences\.)/.test(message.type)) return localLane(() => navigation(message));
     if (message.type !== 'snapshot') return nasLane(() => dispatch(message));
@@ -142,4 +168,21 @@ export function createController({storage, permissions, fetcher = fetch, now = (
     }
     return pendingSnapshot;
   };
+  handle.iconBatchTick=iconBatch.tick;
+  handle.auditTick=audit.tick;
+  handle.workspaceTick=workspace.tick;handle.workspaceChanged=workspace.changed;
+  handle.freezeIcons=()=>localLane(async()=>{
+    const current=await navigation({type:'navigation.get'}),missing=current.bookmarks.filter(site=>!site.icon);
+    if(!missing.length)return current;
+    let remaining=MAX_ICONS_BYTES-current.bookmarks.reduce((n,s)=>n+(s.icon?.dataURL?.length||0),0);const icons=[];
+    for(const site of missing){
+      let icon=null;try{icon=validateBookmarkIcon(await readLegacyIcon(site.url));}catch{}
+      if(icon?.dataURL?.length>remaining)icon=null;
+      if(icon?.dataURL)remaining-=icon.dataURL.length;
+      icons.push({id:site.id,icon:icon||fallbackBookmarkIcon(site.title,site.url)});
+    }
+    return navigation({type:'navigation.freezeIcons',revision:current.revision,icons});
+  });
+  handle.backupTick=backups.tick;handle.backupChanged=backups.changed;
+  return handle;
 }

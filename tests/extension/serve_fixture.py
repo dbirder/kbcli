@@ -76,6 +76,12 @@ def bootstrap():
     )
 
 
+@app.get("/popup.html")
+def popup():
+    source = (ROOT / "extensions/chrome-kb/popup.html").read_text()
+    return Response(source.replace('src="popup.mjs"', 'src="/__test_bootstrap.mjs"'), media_type="text/html")
+
+
 @app.post("/__test/conflict/{identifier}")
 def conflict(identifier: str):
     doc = vault.find(identifier)
@@ -91,6 +97,46 @@ def conflict(identifier: str):
 def pause():
     (sync / "pause.json").write_text('{"error":{"code":"SYNC_CONFLICT"}}')
     return {"ok": True}
+
+
+# Opt-in persistent icon fixture. No production origin or credentials are used.
+icon_test_state = {"offline": False, "variant": 0, "chrome": 0, "site": 0}
+
+
+@app.get("/__icon_test_worker.mjs")
+def icon_worker():
+    return Response((ROOT / "tests/extension/icon-test-worker.mjs").read_text(), media_type="text/javascript")
+
+
+@app.get("/__test/icon/state")
+def icon_state():
+    return icon_test_state
+
+
+@app.post("/__test/icon/control/{offline}/{variant}")
+def icon_control(offline: int, variant: int):
+    icon_test_state.update(offline=bool(offline), variant=variant)
+    return icon_test_state
+
+
+@app.get("/__test/icon/source/{source}")
+def icon_source(source: str):
+    if source not in {"chrome", "site"}:
+        return Response(status_code=404)
+    icon_test_state[source] += 1
+    if icon_test_state["offline"]:
+        return Response(status_code=503)
+    color = "#2080e0" if icon_test_state["variant"] == 0 else "#20c050"
+    return Response(f'<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="{color}"/></svg>', media_type="image/svg+xml", headers={"Cache-Control": "no-store"})
+
+
+@app.get("/__test/audit/{kind}")
+def audit_response(kind: str):
+    if kind == "slow":
+        time.sleep(0.6)
+    code = {"missing": 404, "blocked": 403, "server": 503}.get(kind, 200)
+    title = "Just a moment..." if kind == "challenge" else "TEST ONLY audit response"
+    return Response(f"<html><title>{title}</title><body>TEST ONLY</body></html>", status_code=code, media_type="text/html")
 
 
 app.mount("/", StaticFiles(directory=ROOT / "extensions/chrome-kb"), name="extension-assets")

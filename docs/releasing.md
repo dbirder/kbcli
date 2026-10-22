@@ -37,7 +37,7 @@ python3 /path/to/new-test-vault/.agents/skills/knowledge-maintain/scripts/run_kb
 
 ## Chrome 插件
 
-插件版本独立维护在 `extensions/chrome-kb/manifest.json`，当前为 0.4.1；配套 kbcli 服务为 0.1.2。提交前运行：
+插件版本独立维护在 `extensions/chrome-kb/manifest.json`，当前为 0.15.8；含图标备份与共享同步需配套 kbcli 0.1.5+。提交前运行：
 
 ```bash
 node --test tests/extension/*.test.mjs
@@ -45,7 +45,7 @@ uv run --locked pytest -q
 python3 scripts/build_extension.py --output /path/to/new-release/chrome-kb
 ```
 
-输出父目录中会同时生成 `chrome-kb-0.4.1.zip`，目录或同版本 ZIP 已存在时拒绝覆盖；重新构建使用新的输出父目录。构建器仅复制白名单资源并生成哈希清单，开发技能、测试 shim、配置和凭据不进入扩展包。Git 提交包含源码、测试、说明、截图和官方技能的来源/许可证；ZIP 与解压产物继续留在被忽略的 dist 目录中。
+输出父目录中会同时生成 `chrome-kb-0.15.8.zip`，目录或同版本 ZIP 已存在时拒绝覆盖；重新构建使用新的输出父目录。构建器仅复制白名单资源并生成哈希清单，开发技能、测试 shim、配置和凭据不进入扩展包。Git 提交包含源码、测试、说明、截图和官方技能的来源/许可证；ZIP 与解压产物继续留在被忽略的 dist 目录中。
 
 测试入口、隔离服务和真实点击场景见 [插件验证说明](../tests/extension/README.md)，本次 0.3.0–0.4.1 整理结果见 [提交验收](verification/chrome-0.4.1-release.md)。
 
@@ -66,3 +66,13 @@ NAS 使用完整发布包或已安装软件，保留知识库和库外状态卷�
 运行 `python3 scripts/build_nas_image_context.py --output /path/to/new/context` 生成凭据隔离的 Docker 上下文；在 NAS 使用其中 Dockerfile 构建本地版本镜像。镜像、目录迁移、凭据保留及回滚见 [NAS 部署](nas-deployment.md)。软件版本不变时，部署镜像可使用独立的 nas 后缀版本；已运行镜像的 digest 记录在验收文档中。
 
 NAS 工具本轮提交范围与测试结果见 [2026-10-19 验收](verification/nas-release-2026-10-19.md)，执行入口见 [NAS 工具说明](../deploy/nas/README.md)。
+
+## 浏览器备份发行
+
+0.5.0 新增 alarms 权限，完整功能需要 kbcli 0.1.3，旧客户端读取和待办协议保持兼容。发布时必须先跑 `tests/test_backups.py`、`tests/extension/backup.test.mjs` 与 `verify_backups.mjs`，并使用新版 `verify_nas_image.py` 验证不可变 JSON 的操作日志、自动推送、另一副本读取、agent 拒绝与冲突持久暂停。镜像升级用 `activate_nas_image.py --expected-version 0.1.3`。备份内容不得包含真实凭据或打入发布包。部署及测试边界见[验收记录](verification/chrome-backups-0.5.0.md)。
+
+0.6.0 共享同步需 kbcli 0.1.4，发布时增加 test_workspace.py、workspace.test.mjs 和 verify_workspace.mjs；先跑 NAS 隔离共享 CAS/保护备份验收，再用 activate_nas_image.py 的 `--expected-version 0.1.4` 切换镜像。
+
+## 当前工作台验收（0.15.8）
+
+当前版本使用 Orbit 居中文件夹/知识库/设置弹窗及本地 Motion 动效，支持单列知识列表、折叠目录、全屏阅读与首屏缓存。原有控件、备份、拖拽、检查及图标工具完整保留。各轮界面验证记录位于 design/，包含个人壁纸的本机 previews/*.png 不纳入 Git；正式扩展包仍由白名单构建。

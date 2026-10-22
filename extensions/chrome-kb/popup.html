@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>快速收藏 · KB 工作台</title><link rel="icon" href="assets/icons/icon-32.png"><link rel="stylesheet" href="popup.css"></head>
+<body>
+<header><h1 id="heading">收藏网站</h1><button id="open-workbench" type="button" class="text-button">打开工作台</button></header>
+<main>
+<section class="preview" aria-label="收藏预览"><span id="preview-icon" class="preview-icon" aria-hidden="true">K</span><div><strong id="preview-title">收藏当前网页</strong><span id="preview-host">填写网址即可收藏</span></div></section>
+<p id="notice" class="notice" role="status" hidden></p>
+<form id="capture-form">
+<div class="field"><label for="capture-title">网站名称</label><input id="capture-title" required maxlength="100" autocomplete="off" placeholder="例如：团队文档" aria-errormessage="form-error"></div>
+<div class="field"><div class="field-line"><label for="capture-url">网站地址</label><button id="reload-info" type="button" class="text-button">重新获取当前页</button></div><input id="capture-url" required maxlength="4096" autocomplete="off" spellcheck="false" placeholder="https://example.com" aria-errormessage="form-error"></div>
+<div class="field"><div class="field-line"><label for="group-trigger">所属分组</label><button id="new-group" type="button" class="text-button">＋ 新建分组</button></div><button id="group-trigger" type="button" class="group-trigger" aria-haspopup="listbox" aria-expanded="false" popovertarget="group-picker">常用 <span aria-hidden="true">⌄</span></button>
+<div id="new-group-fields" class="inline-row" hidden><input id="new-group-name" maxlength="40" placeholder="分组名称" aria-label="新分组名称"><button id="create-group" type="button" class="secondary">创建</button></div></div>
+<fieldset><legend>网站图标</legend><div class="modes"><label><input type="radio" name="icon-mode" value="auto" checked>创建时获取</label><label><input type="radio" name="icon-mode" value="image">图片链接</label><label><input type="radio" name="icon-mode" value="text">文字图标</label></div>
+<div id="auto-panel"><button id="reload-icon" type="button" class="text-button">手动获取图标</button></div>
+<div id="image-panel" hidden><label for="image-url" class="hint">图片直链，最多 2 MiB；成功预览后才替换</label><div class="inline-row"><input id="image-url" type="text" inputmode="url" maxlength="4096" placeholder="https://…/logo.png" autocomplete="off" spellcheck="false"><button id="load-image" type="button" class="secondary">加载</button></div></div>
+<div id="text-panel" class="inline-row" hidden><label for="icon-text" class="sr-only">图标文字，最多两个字</label><input id="icon-text" maxlength="4" placeholder="1～2 个字" autocomplete="off"><label for="icon-color" class="sr-only">图标底色</label><input id="icon-color" type="color" value="#2c756a" aria-label="图标底色"></div>
+<p id="image-status" class="hint" role="status">图标创建时保存，之后仅在手动编辑时更换。</p></fieldset>
+<p id="form-error" class="error" role="alert" hidden></p>
+<footer><span id="draft-status" class="hint" role="status">正在读取收藏…</span><button id="save-capture" type="submit" class="primary" disabled>保存收藏</button></footer>
+</form>
+<section id="success" class="success" role="status" hidden><strong id="success-title">已保存</strong><button id="view-saved" class="text-button" type="button">在工作台查看</button></section>
+</main>
+<div id="group-picker" popover="auto" class="group-picker"><input id="group-search" type="search" placeholder="搜索分组" aria-label="搜索分组" autocomplete="off"><div id="group-options" role="listbox" aria-label="所属分组"></div></div>
+<script src="popup.mjs" type="module"></script></body></html>

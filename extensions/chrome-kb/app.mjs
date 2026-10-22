@@ -1,4 +1,9 @@
+import {initWorkbench} from './workbench-ui.mjs';
+import {initIconBatch} from './icon-batch-ui.mjs';
 import {ApiError, permissionOrigin, taskChanges, validateTask} from './api.mjs';
+import {initWorkspace} from './workspace-ui.mjs';
+import {initControls} from './controls.mjs';
+import {initBackups} from './backup-ui.mjs';
 import {initAppearance} from './appearance-ui.mjs';
 import {initKnowledge} from './knowledge-ui.mjs';
 import {initShell} from './shell.mjs';
@@ -10,7 +15,9 @@ const statuses = {todo: '待办', doing: '进行中', done: '已完成', cancell
 let snapshot = {connection: {configured: false}, resources: {}, writable: false};
 let filter = 'pending', fetching = false, mutating = false, editing = null, conflict = false, latest = null, uncertain = false;
 let refreshGeneration = 0, toastTimer, refreshQueued = false;
-let editingRevision = null, settingsRevision = null, connecting = false;
+let editingRevision = null, settingsRevision = null, connecting = false, taskRenderKey = null;
+await initWorkbench();
+initControls();
 document.querySelectorAll('dialog').forEach(dialog=>bindLightDismiss(dialog));
 const shell=initShell();
 const knowledge=initKnowledge({send,getConnection:()=>snapshot.connection});
@@ -41,7 +48,8 @@ function render() {
   $('list-caption').textContent = hasTasks ? `${all.filter(t => ['todo', 'doing'].includes(t.status)).length} 项待处理，把注意力留给眼前的事` : '连接知识库后，你的待办会出现在这里';
   $('list-total').textContent = hasTasks ? `显示 ${visible.length} 项，共 ${all.length} 项` : '待办数据尚未加载';
   $('add-button').disabled = !writable(); $('save-task-button').disabled = !writable() || conflict || uncertain || editingRevision !== snapshot.connection.revision;
-  const list = $('task-list'); list.replaceChildren();
+  const list = $('task-list'), nextTaskKey=JSON.stringify([visible,snapshot.connection.revision,writable(),filter]);
+  if(taskRenderKey!==nextTaskKey){taskRenderKey=nextTaskKey;list.replaceChildren();
   for (const task of visible) {
     const row = el('li', `task-row ${task.status}`); row.dataset.taskId = task.id;
     const check = el('button', `complete-button ${task.status}`, task.status === 'done' ? '✓' : task.status === 'cancelled' ? '−' : '');
@@ -58,6 +66,7 @@ function render() {
     body.append(meta);
     const edit = el('button', 'row-edit', '⋯'); edit.type = 'button'; edit.dataset.focusKey = `task:${task.id}:edit`; edit.setAttribute('aria-label', `修改待办：${task.title}`); edit.disabled = !writable(); edit.addEventListener('click', () => openTask(task,displayedRevision));
     row.append(check, body, edit); list.append(row);
+  }
   }
   $('empty').hidden = visible.length > 0;
   $('empty-title').textContent = !snapshot.connection.configured ? '让待办和知识，回到自己的空间。' : !hasTasks ? '暂时没有取得待办数据' : query ? '没有找到匹配的待办' : filter === 'pending' ? '眼前的事情，已经安排妥当。' : '这里暂时没有待办';
@@ -166,12 +175,12 @@ $('task-form').addEventListener('submit', async event => {
     if (error.code === 'FILE_CHANGED') conflict = true;
     if (error.writeUncertain) uncertain = true;
   } finally {
-    mutating = false; await refresh(); render();
+    mutating = false; render(); await refresh(); render();
     if (conflict) { latest = tasks().find(t => t.id === editing?.id); $('conflict-box').hidden = false; $('conflict-latest').textContent = latest ? `最新内容：${latest.title}；${statuses[latest.status]}；截止 ${latest.due || '未设置'}。载入会替换当前输入。` : '最新记录暂不可读，请恢复连接后关闭编辑并刷新。'; $('load-latest').disabled = !latest; }
   }
 });
 $('load-latest').addEventListener('click', () => { if (latest && editingRevision === snapshot.connection.revision) fillTask(latest); });
-document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => { const id=button.dataset.close; if ((id!=='task-dialog'||!mutating)&&(id!=='settings-dialog'||!connecting)) { if(id==='settings-dialog')closeSettings();else $(id).close(); } }));
+document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => { const id=button.dataset.close; if ($(id).kbCanDismiss?.()===false)return; if ((id!=='task-dialog'||!mutating)&&(id!=='settings-dialog'||!connecting)) { if(id==='settings-dialog')closeSettings();else $(id).close(); } }));
 $('task-dialog').addEventListener('cancel', event => { if (mutating) event.preventDefault(); });
 $('filters').addEventListener('click', event => { const button = event.target.closest('[data-filter]'); if (button) { filter = button.dataset.filter; render(); } });
 $('search').addEventListener('input', render); $('settings-button').addEventListener('click', openSettings); $('refresh-button').addEventListener('click', () => refresh({quiet:false})); $('add-button').addEventListener('click', () => openTask());
@@ -199,4 +208,14 @@ chrome.storage.onChanged.addListener((changes, area) => { if (area === 'local' &
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 setInterval(() => { dateLabel(); if (!document.hidden && !$('settings-dialog').open) refresh(); }, 30000);
 for (const [form,error] of [['settings-form','settings-error'],['task-form','task-error']]) bindValidation(form,error);
-dateLabel(); render(); await initAppearance({send,toast}); await initNavigation({send,toast,onPreferences:shell.preferences}); await refresh();
+dateLabel(); render();
+try {
+  await initAppearance({send,toast});
+  await initNavigation({send,toast,onPreferences:shell.preferences});
+  // Decode the saved wallpaper before revealing the local view; never wait for NAS.
+  const wallpaper=$('wallpaper-image');
+  let timer;
+  try { await Promise.race([wallpaper.decode().catch(()=>{}),new Promise(resolve=>{timer=setTimeout(resolve,1200);})]); }
+  finally { clearTimeout(timer); }
+} finally { window.kbStartup?.finish(); }
+await initIconBatch({send,toast}); await initBackups({send,toast,getConnection:()=>snapshot.connection}); await initWorkspace({send,toast,getConnection:()=>snapshot.connection}); await refresh();

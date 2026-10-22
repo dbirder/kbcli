@@ -1,4 +1,5 @@
 import {ApiError} from './api.mjs';
+import {validateBookmarkIcon,equalBookmark,MAX_ICONS_BYTES,fallbackBookmarkIcon} from './bookmark-icon.mjs';
 export const MAX_BACKUP_BYTES = 16 * 1024 * 1024;
 const fail = (message,field) => { throw new ApiError('NAVIGATION_INVALID', message,field ? {field} : {}); };
 const text = (value, max, label) => {
@@ -25,8 +26,9 @@ export function validateNavigation(data) {
   const bookmarks = new Set();
   for (const site of data.bookmarks) {
     if (!site || typeof site.id !== 'string' || !site.id || bookmarks.has(site.id) || !ids.has(site.groupId)) fail('网站分组或标识无效');
-    bookmarks.add(site.id); text(site.title, 100, '网站名称'); bookmarkURL(site.url);
+    bookmarks.add(site.id); text(site.title, 100, '网站名称'); bookmarkURL(site.url);validateBookmarkIcon(site.icon);
   }
+  if(data.bookmarks.reduce((n,s)=>n+(s.icon?.dataURL?.length||0),0)>MAX_ICONS_BYTES)fail('网站图标总容量超过 1 MiB，请减少自定义图片后再保存','icon');
   if (['openInNewTab', 'showKnowledge', 'compact'].some(key => typeof data.preferences[key] !== 'boolean')) fail('显示设置无效');
   return data;
 }
@@ -44,9 +46,22 @@ export function createNavigationStore({storage, revision = () => crypto.randomUU
   return async message => {
     const data = await read();
     if (message.type === 'navigation.get') return data;
+    let capture;
+    if(message.type==='bookmark.capture'){
+      if(!/^[0-9a-f-]{36}$/i.test(message.operationId||''))fail('保存标识无效');
+      capture={title:text(message.title,100,'网站名称'),url:bookmarkURL(message.url),groupId:message.groupId};
+      capture.icon=validateBookmarkIcon(message.icon)||fallbackBookmarkIcon(capture.title,capture.url);
+      // Stable create id and equality check make retry after popup/worker loss
+      // harmless. A changed record still requires the original revision.
+      const existing=data.bookmarks.find(s=>s.id===(message.id||message.operationId));
+      if(equalBookmark(existing,capture))return data;
+    }
     if (message.revision !== data.revision) throw new ApiError('NAVIGATION_CHANGED', '收藏已在其他标签页更新。已刷新列表，请核对后再次保存，当前输入已保留');
     const action = message.type;
-    if (action === 'group.add' || action === 'group.update') {
+    if(action==='navigation.freezeIcons'){
+      if(!Array.isArray(message.icons))fail('图标快照无效');
+      for(const item of message.icons){const site=find(data.bookmarks,item.id);if(!site.icon)site.icon=validateBookmarkIcon(item.icon)||fallbackBookmarkIcon(site.title,site.url);}
+    }else if (action === 'group.add' || action === 'group.update') {
       const name = text(message.name, 40, '分组名称');
       if (data.groups.some(g => g.name === name && g.id !== message.id)) fail('已有同名分组','name');
       if (action === 'group.add') { if (data.groups.length >= 100) fail('最多支持 100 个分组'); data.groups.push({id:revision(),name}); }
@@ -56,13 +71,38 @@ export function createNavigationStore({storage, revision = () => crypto.randomUU
       find(data.groups,message.id);
       data.groups = data.groups.filter(g => g.id !== message.id);
       for (const site of data.bookmarks) if (site.groupId === message.id) site.groupId = 'default';
+    } else if (action === 'group.place') {
+      const group = find(data.groups,message.id);
+      if (message.beforeId !== null && message.beforeId !== undefined) find(data.groups,message.beforeId);
+      if (message.beforeId === group.id) fail('不能移动到自身之前');
+      data.groups = data.groups.filter(g => g.id !== group.id);
+      const index = message.beforeId == null ? data.groups.length : data.groups.findIndex(g => g.id === message.beforeId);
+      data.groups.splice(index,0,group);
+    } else if (action === 'bookmark.place') {
+      const site = find(data.bookmarks,message.id);
+      find(data.groups,message.groupId);
+      const before = message.beforeId == null ? null : find(data.bookmarks,message.beforeId);
+      if (before && (before.id === site.id || before.groupId !== message.groupId)) fail('目标网站不属于此分组');
+      data.bookmarks = data.bookmarks.filter(s => s.id !== site.id);
+      site.groupId = message.groupId;
+      let index = before ? data.bookmarks.findIndex(s => s.id === before.id) : data.bookmarks.findLastIndex(s => s.groupId === site.groupId)+1;
+      if (!before && index === 0) index = data.bookmarks.length;
+      data.bookmarks.splice(index,0,site);
     } else if (action === 'group.move') {
       move(data.groups,find(data.groups,message.id),message.direction);
+    } else if(action==='bookmark.capture'){
+      find(data.groups,capture.groupId);
+      const duplicate=data.bookmarks.find(s=>s.url===capture.url&&s.id!==message.id&&s.id!==message.operationId);
+      const edited=message.id?data.bookmarks.find(s=>s.id===message.id):null;
+      if(duplicate&&(!edited||edited.url!==capture.url))throw new ApiError('BOOKMARK_EXISTS','这个网址已经收藏，请重新打开弹窗编辑已有收藏');
+      if(message.id){const site=find(data.bookmarks,message.id);Object.assign(site,capture);if(!capture.icon)delete site.icon;}
+      else {if(data.bookmarks.length>=2000)fail('最多支持 2000 个网站');if(data.bookmarks.some(s=>s.id===message.operationId))fail('此保存已完成，请重新打开弹窗核对');data.bookmarks.push({id:message.operationId,...capture});}
     } else if (action === 'bookmark.add' || action === 'bookmark.update') {
       const title = text(message.title,100,'网站名称'), url = bookmarkURL(message.url);
       find(data.groups,message.groupId);
-      if (action === 'bookmark.add') { if (data.bookmarks.length >= 2000) fail('最多支持 2000 个网站'); data.bookmarks.push({id:revision(),title,url,groupId:message.groupId}); }
-      else Object.assign(find(data.bookmarks,message.id),{title,url,groupId:message.groupId});
+      const icon=Object.hasOwn(message,'icon')?validateBookmarkIcon(message.icon):undefined;
+      if (action === 'bookmark.add') { if (data.bookmarks.length >= 2000) fail('最多支持 2000 个网站'); data.bookmarks.push({id:revision(),title,url,groupId:message.groupId,icon:icon||fallbackBookmarkIcon(title,url)}); }
+      else {const site=find(data.bookmarks,message.id);Object.assign(site,{title,url,groupId:message.groupId});if(icon!==undefined){if(icon)site.icon=icon;else delete site.icon;}}
     } else if (action === 'bookmark.remove') {
       find(data.bookmarks,message.id); data.bookmarks = data.bookmarks.filter(s => s.id !== message.id);
     } else if (action === 'bookmark.move') {
@@ -81,7 +121,7 @@ export function createNavigationStore({storage, revision = () => crypto.randomUU
       }
       for (const site of input.bookmarks) {
         const url = bookmarkURL(site.url), groupId = groups.get(site.groupId);
-        if (!data.bookmarks.some(s => s.url === url && s.groupId === groupId)) data.bookmarks.push({id:revision(),title:site.title.trim(),url,groupId});
+        if (!data.bookmarks.some(s => s.url === url && s.groupId === groupId)) {const icon=validateBookmarkIcon(site.icon)||fallbackBookmarkIcon(site.title,url);data.bookmarks.push({id:revision(),title:site.title.trim(),url,groupId,icon});}
       }
     } else if (action === 'preferences.update') {
       const changes = message.changes;
@@ -89,11 +129,11 @@ export function createNavigationStore({storage, revision = () => crypto.randomUU
       Object.assign(data.preferences,changes);
     } else fail('不支持的收藏操作');
     data.revision = revision(); validateNavigation(data);
-    await storage.set({navigation:data});
+    try{await storage.set({navigation:data});}catch{throw new ApiError('STORAGE_FULL','收藏未保存，浏览器存储空间不足；原收藏已保留');}
     return data;
   };
 }
 export function exportNavigation(data) {
   validateNavigation(data);
-  return {format:'kb-workspace-bookmarks',version:1,groups:data.groups.map(({id,name})=>({id,name})),bookmarks:data.bookmarks.map(({id,title,url,groupId})=>({id,title,url,groupId}))};
+  return {format:'kb-workspace-bookmarks',version:1,groups:data.groups.map(({id,name})=>({id,name})),bookmarks:data.bookmarks.map(({id,title,url,groupId,icon})=>({id,title,url,groupId,...(icon?{icon:validateBookmarkIcon(icon)}:{})}))};
 }
