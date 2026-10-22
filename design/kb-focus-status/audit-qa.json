@@ -1,0 +1,17 @@
+{
+  "sites": 6,
+  "defaultSelected": 0,
+  "statuses": [
+    "ok",
+    "restricted",
+    "httpError",
+    "httpError",
+    "restricted",
+    "ok"
+  ],
+  "delete": "review, cancel, confirm and undo",
+  "persistence": "same report after reload, no automatic scan",
+  "background": "continues after close, explicit stop",
+  "stale": "changed URL cannot be deleted",
+  "icons": "zero lookups"
+}

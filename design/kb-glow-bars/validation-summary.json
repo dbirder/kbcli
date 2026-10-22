@@ -1,0 +1,13 @@
+{
+  "version": "0.15.4",
+  "unitTests": 141,
+  "packageTest": 1,
+  "browserPreferences": "pointer and Space keyboard, cross-tab and reload passed; old preferences and bookmark/background/connection payloads unchanged",
+  "nativeReloadVerified": true,
+  "nativeFinalTextGlow": false,
+  "nativeFinalWallpaperBars": true,
+  "nativeGroups": 15,
+  "nativeBookmarks": 90,
+  "wallpaperRetained": true,
+  "archiveSHA256": "303bbbea601e9f64503deeaadaaac248ee00cca109377f12b6c79b3878ce965c"
+}

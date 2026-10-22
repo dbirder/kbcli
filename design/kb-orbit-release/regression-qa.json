@@ -1,0 +1,15 @@
+{
+  "verify_controls": {
+    "select": "pointer, Home/End/arrows, disabled options, Escape rollback, outside click and actual save",
+    "date": "leap day, month keyboard navigation, clear, invalid date rejection and actual save",
+    "state": "custom status saves doing; done remains disabled",
+    "mobile": "390px popup stays inside viewport; custom settings screenshot"
+  },
+  "verify_backups": {
+    "backup": "saved bookmark and settings snapshot via real API",
+    "offline": "persisted outbox, controller reload, manual catchup",
+    "restore": "history preview, outside dismissal topmost only, confirmed restore and local undo",
+    "device": "identity preserved",
+    "mobile": "390px settings without horizontal overflow"
+  }
+}

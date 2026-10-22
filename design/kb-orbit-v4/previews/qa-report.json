@@ -1,0 +1,140 @@
+{
+  "library": "Motion 14.6.0",
+  "closeSamples": [
+    {
+      "name": "spring",
+      "frames": 8,
+      "widthDelta": 0,
+      "heightDelta": 0
+    },
+    {
+      "name": "smooth",
+      "frames": 2,
+      "widthDelta": 0,
+      "heightDelta": 0
+    },
+    {
+      "name": "settings",
+      "frames": 2,
+      "widthDelta": 0,
+      "heightDelta": 0
+    },
+    {
+      "name": "folder-editor-return",
+      "frames": 2,
+      "widthDelta": 0,
+      "heightDelta": 0
+    },
+    {
+      "name": "knowledge",
+      "frames": 3,
+      "widthDelta": 0,
+      "heightDelta": 0
+    },
+    {
+      "name": "new-group",
+      "frames": 3,
+      "widthDelta": 0,
+      "heightDelta": 0
+    },
+    {
+      "name": "add-site",
+      "frames": 2,
+      "widthDelta": 0,
+      "heightDelta": 0
+    },
+    {
+      "name": "mobile-settings",
+      "frames": 8,
+      "widthDelta": 0,
+      "heightDelta": 0
+    }
+  ],
+  "settings": [
+    {
+      "name": "外观与背景",
+      "buttons": [
+        "深色",
+        "浅色",
+        "上传壁纸",
+        "恢复默认"
+      ],
+      "fields": [
+        "背景主题",
+        "上传壁纸",
+        "背景暗度",
+        "背景模糊",
+        "壁纸位置"
+      ]
+    },
+    {
+      "name": "动效体验",
+      "buttons": [
+        "体验弹窗"
+      ],
+      "fields": [
+        "交互手感"
+      ]
+    },
+    {
+      "name": "搜索与浏览",
+      "buttons": [],
+      "fields": [
+        "默认搜索引擎",
+        "显示时钟",
+        "新标签页打开网站",
+        "显示知识库入口",
+        "紧凑视图"
+      ]
+    },
+    {
+      "name": "收藏管理",
+      "buttons": [
+        "网站可用性检查",
+        "批量获取网站图标",
+        "导出备份",
+        "导入并合并"
+      ],
+      "fields": []
+    },
+    {
+      "name": "备份与同步",
+      "buttons": [
+        "立即同步",
+        "查看同步状态",
+        "处理冲突",
+        "保存备份配置",
+        "立即备份",
+        "预览恢复",
+        "刷新历史",
+        "撤销上次恢复"
+      ],
+      "fields": [
+        "多设备自动同步",
+        "NAS 自动备份",
+        "设备名称"
+      ]
+    },
+    {
+      "name": "NAS 连接",
+      "buttons": [
+        "保存并连接",
+        "断开连接"
+      ],
+      "fields": [
+        "NAS 服务地址",
+        "访问令牌"
+      ]
+    }
+  ],
+  "profiles": [
+    "spring",
+    "smooth",
+    "still"
+  ],
+  "rapidClose": "4 interrupted entrance cycles completed",
+  "reducedMotion": "no panel transforms animated",
+  "errors": [],
+  "externalResources": [],
+  "data": "No chrome.storage or NAS writes. All actions use synthetic data."
+}

@@ -1,0 +1,25 @@
+{
+  "groups": 15,
+  "bookmarks": 91,
+  "icons": {
+    "image": 1,
+    "auto": 63,
+    "text": 27
+  },
+  "decodedImages": 64,
+  "serverRoundtrip": "exact match",
+  "emptyWorkspaceRestore": "exact match including IDs, group order, bookmark order, URLs, preferences, appearance and every icon byte",
+  "reload": "exact match",
+  "cancel": "empty test data unchanged",
+  "undo": "returned exactly to empty test data",
+  "secondRestore": "exact match",
+  "deviceAndTestConnectionPreserved": true,
+  "iconSourceRequests": 0,
+  "sourcePayloadSHA256": "9b698f93204dcfdfbfa0b0708a15293f9f1986101784ddbb88debdafde007108",
+  "productionUnchanged": {
+    "files": 115,
+    "contentDigestEqual": true,
+    "gitHeadEqual": true,
+    "realBrowserRestorePerformed": false
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "version": "0.15.2",
+  "focusCases": 24,
+  "validationErrorColorPreserved": true,
+  "statusIcons": "SVG only; labels, details and timestamp available; no card status text",
+  "auditRegression": "passed, including restricted protection, confirmation, undo, stop and stale results",
+  "dragRegression": "passed, including hover expansion and specific insertion",
+  "nodeTests": 138,
+  "packageTest": 1,
+  "chromeReloadVerified": true,
+  "liveCountsBeforeUpdate": {
+    "groups": 15,
+    "bookmarks": 90
+  },
+  "liveCountsAfterUpdate": {
+    "groups": 15,
+    "bookmarks": 90
+  },
+  "liveDataEdits": "none; all mutation checks used loopback fixture",
+  "archiveSHA256": "40ae18d803bf8ccc65abbd8841188facb942921f1a9cf2afebbc8bd1721494e7"
+}

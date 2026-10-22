@@ -1,0 +1,15 @@
+{
+  "source": "https://www.npmjs.com/package/motion/v/14.6.0",
+  "packages": {
+    "motion": "14.6.0",
+    "framer-motion": "14.6.0",
+    "motion-dom": "14.6.0",
+    "motion-utils": "14.6.0",
+    "esbuild": "0.28.2"
+  },
+  "entry": "export { animate, stagger } from \"motion\";",
+  "build": "esbuild entry.mjs --bundle --format=esm --minify --outfile=motion-14.6.0.mjs",
+  "bytes": 65813,
+  "sha256": "04edec1869c81973ec9b7d9bd60107c7e3e33acb85656eb5a376826f91670af5",
+  "license": "MIT; full notices included alongside bundle"
+}

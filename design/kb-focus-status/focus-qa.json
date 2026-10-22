@@ -1,0 +1,318 @@
+{
+  "fields": [
+    {
+      "selector": "#site-search",
+      "outline": "none",
+      "shadow": "none",
+      "border": "0px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#folder-search",
+      "outline": "none",
+      "shadow": "none",
+      "border": "0px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#server-input",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#token-input",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#backup-device-name",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#site-title",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#site-url",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#site-group-control",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#group-name",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#search",
+      "outline": "none",
+      "shadow": "none",
+      "border": "0px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#task-title",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#task-due",
+      "outline": "none",
+      "shadow": "none",
+      "border": "0px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#task-due-calendar",
+      "outline": "none",
+      "shadow": "none",
+      "border": "0px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#task-tags",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#knowledge-query",
+      "outline": "none",
+      "shadow": "none",
+      "border": "0px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#folder-search",
+      "outline": "none",
+      "shadow": "none",
+      "border": "0px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(53, 105, 168)",
+      "accent": "rgb(53, 105, 168)",
+      "focused": true
+    },
+    {
+      "selector": "#capture-title",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#capture-url",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#group-trigger",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#new-group-name",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#group-search",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#image-url",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#icon-text",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    },
+    {
+      "selector": "#icon-color",
+      "outline": "none",
+      "shadow": "none",
+      "border": "1px",
+      "frameBorder": "1px",
+      "frameColor": "rgb(165, 198, 244)",
+      "accent": "rgb(165, 198, 244)",
+      "focused": true
+    }
+  ],
+  "badges": [
+    {
+      "state": "ok",
+      "text": "",
+      "label": "可访问",
+      "role": "img",
+      "title": "可访问 · HTTP 200：入口可响应，未验证登录后功能\n检查时间：2026/10/23 00:58:38",
+      "svg": 1,
+      "parent": "site-icon-wrap",
+      "width": 18,
+      "height": 18
+    },
+    {
+      "state": "restricted",
+      "text": "",
+      "label": "请求受限 · 待复核",
+      "role": "img",
+      "title": "请求受限 · 待复核 · HTTP 403：登录、风控或限流，不能据此判定网站失效\n检查时间：2026/10/23 00:58:38",
+      "svg": 1,
+      "parent": "site-icon-wrap",
+      "width": 18,
+      "height": 18
+    },
+    {
+      "state": "stale",
+      "text": "",
+      "label": "待重查",
+      "role": "img",
+      "title": "网址已修改，请手动重新检查",
+      "svg": 1,
+      "parent": "site-icon-wrap",
+      "width": 18,
+      "height": 18
+    },
+    {
+      "state": "httpError",
+      "text": "",
+      "label": "HTTP 异常",
+      "role": "img",
+      "title": "HTTP 异常 · HTTP 503：服务器本次返回错误，建议浏览器复核\n检查时间：2026/10/23 00:58:38",
+      "svg": 1,
+      "parent": "site-icon-wrap",
+      "width": 18,
+      "height": 18
+    },
+    {
+      "state": "restricted",
+      "text": "",
+      "label": "请求受限 · 待复核",
+      "role": "img",
+      "title": "请求受限 · 待复核 · 入口响应正常，但可能停留在验证码或安全验证页\n检查时间：2026/10/23 00:58:38",
+      "svg": 1,
+      "parent": "site-icon-wrap",
+      "width": 18,
+      "height": 18
+    },
+    {
+      "state": "ok",
+      "text": "",
+      "label": "可访问",
+      "role": "img",
+      "title": "可访问 · HTTP 200：入口可响应，未验证登录后功能\n检查时间：2026/10/23 00:58:39",
+      "svg": 1,
+      "parent": "site-icon-wrap",
+      "width": 18,
+      "height": 18
+    }
+  ],
+  "invalid": {
+    "color": "rgb(239, 173, 159)",
+    "danger": "rgb(239, 173, 159)",
+    "innerBorder": "0px"
+  },
+  "mobile": "390px cards fit; capture inputs checked"
+}

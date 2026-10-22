@@ -15,3 +15,6 @@ dist/
 .env.*
 .coverage
 htmlcov/
+
+# Local visual QA captures may contain personal wallpapers or browser context.
+/design/**/previews/*.png

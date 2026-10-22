@@ -1,0 +1,16 @@
+{
+  "verify_orbit": {
+    "settings": "6 categories; 29 legacy controls retained",
+    "preferences": "motion preference persists independently; navigation, appearance and connection unchanged",
+    "tasks": "search, filters and count stay fixed while results scroll",
+    "reader": "directory, local size preference, scroll progress and nested return work",
+    "exit": {
+      "samples": 6,
+      "width": 920,
+      "height": 720,
+      "scale": 1
+    },
+    "interruptions": "3 immediate Escape cycles completed",
+    "responsive": "390x844; dialogs fit above fixed bottom bar, reader fits viewport"
+  }
+}

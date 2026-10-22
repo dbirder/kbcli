@@ -1,0 +1,14 @@
+{
+  "version": "0.15.3",
+  "unitTests": 141,
+  "packageTest": 1,
+  "browser": "specified image, default wallpaper, reload and second-tab persistence, dim, blur, position, three themes, SVG rejection preservation",
+  "installedFilesVerified": 54,
+  "runtimeReload": "verified Chrome 0.15.3",
+  "archiveSHA256": "029476333ef728388fca1fc1c7c4288f78a124e5cb690b3e4cbcea85018a6f00",
+  "nativePhotoApplied": "user-specified file uploaded and visibly rendered",
+  "nativeNewTabPersistence": true,
+  "liveGroups": 15,
+  "liveBookmarks": 90,
+  "originalFileModified": false
+}

@@ -1,0 +1,7 @@
+{
+  "desktop": "860px ↔ 1440×1000 viewport",
+  "position": "visible paragraph anchor drift <2px in both directions",
+  "keyboard": "Enter toggles; Escape restores; next Escape closes",
+  "reset": "close from expanded mode resets next article to normal",
+  "mobile": "390×844 full viewport; restores 370px; no horizontal overflow"
+}

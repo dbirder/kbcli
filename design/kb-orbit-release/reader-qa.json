@@ -1,0 +1,6 @@
+{
+  "controls": "44px aligned search; no nested borders; one-row filters",
+  "reader": "centered Markdown, fixed toolbar, internal links, nested dismissal, read-only",
+  "safety": "no HTML execution, article writes or external resource requests",
+  "responsive": "1440px and 390px; no horizontal overflow"
+}

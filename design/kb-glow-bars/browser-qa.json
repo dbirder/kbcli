@@ -1,0 +1,15 @@
+{
+  "defaults": "glow off; transparent full-width bars with local readable surfaces",
+  "settings": "two native switches, pointer and Space keyboard, immediate update",
+  "persistence": "reload and second tab match",
+  "legacy": "light scheme, 18px reader, reduced motion and bookmark/background/connection payloads retained",
+  "geometry": {
+    "headerHeight": 68,
+    "footerBottom": 1000,
+    "height": 1000,
+    "wallpaperTop": 0,
+    "wallpaperBottom": 1000
+  },
+  "forcedColors": "system Canvas fallback applied",
+  "mobile": "390px no horizontal overflow; footer stays fixed"
+}

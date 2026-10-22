@@ -1,0 +1,27 @@
+{
+  "pendingFrames": 290,
+  "firstVisible": {
+    "t": 2664.2999999523163,
+    "pending": false,
+    "scheme": "light",
+    "visibility": "visible",
+    "preview": false,
+    "wallpaper": true,
+    "decoded": true,
+    "folders": 1,
+    "footer": true,
+    "clock": "01:59"
+  },
+  "warmReadyMs": [
+    161.20000004768372,
+    85.20000004768372,
+    79.69999980926514
+  ],
+  "dark": "all recorded frames match saved scheme",
+  "failureFallback": {
+    "time": 4013.5,
+    "visible": "visible"
+  },
+  "data": "navigation and appearance unchanged",
+  "mobile": "390px no overflow"
+}

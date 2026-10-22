@@ -1,0 +1,2 @@
+# Preserve upstream SortableJS code and license bytes, including CRLF.
+extensions/chrome-kb/vendor/sortable* whitespace=cr-at-eol

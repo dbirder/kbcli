@@ -1,0 +1,25 @@
+{
+  "version": "0.15.0",
+  "nodeTests": 138,
+  "pythonTests": 136,
+  "browserPassed": [
+    "reader security and rendering",
+    "6 settings categories and 29 original controls",
+    "dialog busy guards and focus",
+    "select and date controls; task create and edit",
+    "backup history preview, confirmed restore and undo",
+    "embedded icon editor; save busy guard and draft preservation",
+    "batch icons: defaults, persistence, permissions, manual edits, stop",
+    "website audit: restricted classification, delete confirmation, undo, stop",
+    "cross-folder drag: hover expansion, specified insertion, scrolling, Escape, conflict"
+  ],
+  "exitGeometry": {
+    "width": 920,
+    "height": 720,
+    "scale": 1,
+    "sampledFrames": 6
+  },
+  "productionDataUnchanged": true,
+  "installedFilesVerified": 54,
+  "archiveSHA256": "8920843ae99ce58ce869afbc568cbd22f0a47ebcbb21cf9fddad5e5499335919"
+}

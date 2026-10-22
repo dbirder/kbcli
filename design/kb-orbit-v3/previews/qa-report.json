@@ -1,0 +1,64 @@
+{
+  "closeSamples": [
+    {
+      "name": "folder",
+      "kind": "outside",
+      "frames": 4,
+      "widthDelta": 0,
+      "heightDelta": 0,
+      "flow": "column"
+    },
+    {
+      "name": "standalone-editor",
+      "kind": "outside",
+      "frames": 5,
+      "widthDelta": 0,
+      "heightDelta": 0,
+      "flow": "column"
+    },
+    {
+      "name": "settings",
+      "kind": "outside",
+      "frames": 5,
+      "widthDelta": 0,
+      "heightDelta": 0,
+      "flow": "column"
+    },
+    {
+      "name": "knowledge",
+      "kind": "escape",
+      "frames": 4,
+      "widthDelta": 0,
+      "heightDelta": 0,
+      "flow": "column"
+    },
+    {
+      "name": "new-group",
+      "kind": "button",
+      "frames": 5,
+      "widthDelta": 0,
+      "heightDelta": 0,
+      "flow": "column"
+    },
+    {
+      "name": "maintenance",
+      "kind": "outside",
+      "frames": 6,
+      "widthDelta": 0,
+      "heightDelta": 0,
+      "flow": "column"
+    },
+    {
+      "name": "mobile-folder",
+      "kind": "outside",
+      "frames": 7,
+      "widthDelta": 0,
+      "heightDelta": 0,
+      "flow": "column"
+    }
+  ],
+  "backgroundProgress": "continues in bottom status bar after closing",
+  "mobile": "dialog and fixed bottom status bar fit 390×844",
+  "singleLayer": "folder and editor share identical frame",
+  "data": "demonstration only, no chrome storage or NAS calls"
+}

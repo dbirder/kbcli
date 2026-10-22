@@ -1,0 +1,16 @@
+{
+  "version": "0.15.0",
+  "groups": 15,
+  "sites": 91,
+  "icons": {
+    "image": 1,
+    "auto": 63,
+    "text": 27
+  },
+  "navigationAppearanceSHA256": "f60acf3f4087841baba0f942b6a62924c9058b6a5e19fa3a80c8c1643e8b3ab1",
+  "chromeNativeVerified": true,
+  "newTabOverrideVerified": true,
+  "springAnimationsObserved": 2,
+  "initialTranslationY": 21.9824,
+  "realNAS": "connected; task and article reads verified; no task writes"
+}

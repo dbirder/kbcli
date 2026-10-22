@@ -1,0 +1,23 @@
+{
+  "default": {
+    "opacity": "1",
+    "gradient": "none",
+    "mask": "rgba(3, 14, 23, 0.24)",
+    "filter": "blur(0px)",
+    "position": "center center",
+    "width": 2560,
+    "height": 1600
+  },
+  "upload": {
+    "originalFilename": "【哲风壁纸】剑客-水墨.png",
+    "format": "WebP",
+    "width": 2560,
+    "height": 1440,
+    "storedCharacters": 152967,
+    "sourceRecognition": "JPEG bytes accepted despite PNG filename",
+    "rejectedVectorPreservesPhoto": true
+  },
+  "persistence": "same image bytes after reload and in a second tab",
+  "controls": "0/75/24 percent dim; 6/0px blur; top/bottom/center; all 3 themes",
+  "unchanged": "fixture navigation and connection identical"
+}

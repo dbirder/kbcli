@@ -1,0 +1,11 @@
+{
+  "list": "single column aligned rows",
+  "reader": {
+    "x": 354.5,
+    "width": 720,
+    "dialog": 860
+  },
+  "outline": "collapsed by default; Space toggles; selection collapses and focuses visible heading; body width stable",
+  "mobile": "390px directory available, no horizontal overflow",
+  "font": "18px persisted reader preference remains functional"
+}
