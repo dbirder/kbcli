@@ -45,7 +45,7 @@ class Operations:
                 rows = [
                     dict(row)
                     for row in db.execute(
-                        "SELECT id,path,before_hash,after_hash,state FROM operations WHERE state='saved' AND commit_id IS NULL ORDER BY rowid"
+                        "SELECT id,path,kind,before_hash,after_hash,state FROM operations WHERE state='saved' AND commit_id IS NULL ORDER BY rowid"
                     )
                 ]
                 pending = {}
@@ -93,7 +93,7 @@ class Operations:
                 "SELECT * FROM operations WHERE state IN ('prepared','recovery_needed')"
             ).fetchall():
                 try:
-                    target = self.vault.safe(entry["path"], business=True)
+                    target = self.recorded_path(dict(entry))
                     current = sha(target.read_bytes()) if target.is_file() else None
                     state = (
                         "saved"
@@ -131,7 +131,7 @@ class Operations:
             rows = [
                 dict(row)
                 for row in db.execute(
-                    "SELECT id,path,before_hash,after_hash,state FROM operations WHERE state='saved' AND commit_id IS NULL ORDER BY rowid"
+                    "SELECT id,path,kind,before_hash,after_hash,state FROM operations WHERE state='saved' AND commit_id IS NULL ORDER BY rowid"
                 )
             ]
         latest = {}
@@ -153,6 +153,58 @@ class Operations:
                     "UPDATE operations SET commit_id=? WHERE path=? AND state='saved' AND commit_id IS NULL",
                     (commit_id, path),
                 )
+
+    def recorded_path(self, entry):
+        if entry.get("kind") == "chrome_workspace":
+            from .workspace import workspace_path
+
+            return workspace_path(self.vault, entry["path"])
+        if entry.get("kind") in {"chrome_backup", "chrome_wallpaper"}:
+            from .backups import backup_path
+
+            return backup_path(self.vault, entry["path"], entry["kind"])
+        return self.vault.safe(entry["path"], business=True)
+
+    def write_backup(self, path, raw, *, kind):
+        """Create immutable allowlisted JSON, journaled before the atomic installation."""
+        from .backups import backup_path, validate_record
+
+        with self.vault.writing():
+            if kind == "chrome_workspace":
+                from .workspace import validate_revision, workspace_path
+
+                target = workspace_path(self.vault, path)
+                validate_revision(path, raw)
+            else:
+                target = backup_path(self.vault, path, kind)
+                validate_record(path, kind, raw)
+            if target.exists():
+                if target.read_text() != raw:
+                    raise KBError("BACKUP_EXISTS", "已有备份内容不同，拒绝覆盖")
+                return
+            op_id = str(uuid.uuid4())
+            with self.database() as db:
+                db.execute("INSERT INTO operations VALUES(?,?,?,?,?,?,?,?,?,?,NULL)", (
+                    op_id, path, "human", kind, self.vault.now(), None, sha(raw), None, raw, "prepared",
+                ))
+            target.parent.mkdir(parents=True, exist_ok=True)
+            fd, temporary = tempfile.mkstemp(prefix=".kbcli-", dir=target.parent)
+            installed = False
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8", newline="") as stream:
+                    stream.write(raw)
+                    stream.flush()
+                    os.fsync(stream.fileno())
+                os.chmod(temporary, 0o644)
+                os.link(temporary, target)  # Never replace an existing snapshot.
+                installed = True
+                self.journal(op_id, "saved")
+            except Exception:
+                with suppress(sqlite3.Error):
+                    self.journal(op_id, "recovery_needed" if installed else "failed")
+                raise
+            finally:
+                os.unlink(temporary)
 
     def validate_write(self, candidate, *, completion=False):
         issues = self.vault.validate(candidate)

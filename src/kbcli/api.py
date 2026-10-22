@@ -84,7 +84,7 @@ def create_app(vault, user_token, *, agent_token=None, interval=3, autosync_dir=
             401
             if exc.code == "UNAUTHORIZED"
             else 409
-            if exc.code in {"FILE_CHANGED", "INDEX_STALE", "DUPLICATE_ID"}
+            if exc.code in {"FILE_CHANGED", "INDEX_STALE", "DUPLICATE_ID", "WORKSPACE_CHANGED", "WORKSPACE_FORK"}
             else 403
             if exc.code in {"USER_ACTION_REQUIRED", "PATH_OUTSIDE_VAULT", "FIELD_PROTECTED"}
             else 400
@@ -94,6 +94,51 @@ def create_app(vault, user_token, *, agent_token=None, interval=3, autosync_dir=
     @app.exception_handler(Timeout)
     async def lock_error(request: Request, exc: Timeout):
         return JSONResponse(KBError("LOCK_TIMEOUT", "等待写入锁超时").result(), status_code=409)
+
+    from .backups import MAX_BYTES, Backups
+
+    backups = Backups(vault, operations)
+
+    @app.middleware("http")
+    async def backup_body_limit(request: Request, call_next):
+        if request.url.path in {"/api/backups/chrome", "/api/workspace/chrome"} and request.method == "POST":
+            size = 0
+            chunks = []
+            async for chunk in request.stream():
+                size += len(chunk)
+                if size > MAX_BYTES:
+                    return JSONResponse(KBError("BACKUP_TOO_LARGE", "备份超过 4 MiB").result(), status_code=413)
+                chunks.append(chunk)
+            request._body = b"".join(chunks)
+        return await call_next(request)
+
+    def backup_user(principal=Depends(actor)):
+        if principal != "human":
+            raise KBError("USER_ACTION_REQUIRED", "仅用户令牌可以访问浏览器备份")
+
+    @app.post("/api/backups/chrome", dependencies=[Depends(backup_user)])
+    def save_backup(data: dict):
+        return backups.save(data)
+
+    @app.get("/api/backups/chrome", dependencies=[Depends(backup_user)])
+    def list_backups(limit: int = Query(default=100, ge=1, le=200)):
+        return backups.list(limit)
+
+    @app.get("/api/backups/chrome/{device}/{identifier}", dependencies=[Depends(backup_user)])
+    def read_backup(device: str, identifier: str):
+        return backups.read(device, identifier)
+
+    from .workspace import Workspace
+
+    workspace = Workspace(vault, operations)
+
+    @app.get("/api/workspace/chrome", dependencies=[Depends(backup_user)])
+    def read_workspace(request_id: str | None = None, known_revision: str | None = None):
+        return workspace.read(request_id, known_revision)
+
+    @app.post("/api/workspace/chrome", dependencies=[Depends(backup_user)])
+    def publish_workspace(data: dict):
+        return workspace.publish(data)
 
     @app.get("/api/tasks")
     def tasks(

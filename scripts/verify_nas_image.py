@@ -111,6 +111,67 @@ for args in [('add','.'),('commit','-m','TEST ONLY peer update'),('push',)]: sub
         assert done["status"] == "done" and done["review_status"] == "pending"
         report["tests"]["task_edit_complete_and_agent_boundary"] = True
         wait_for(lambda: request("/api/status").get("pending_tool_writes") == [], "last tool write committed")
+        # Backups use the same journal and scheduler, with immutable JSON outside discovery.
+        import uuid
+        backup_data = {
+            "device_id": str(uuid.uuid4()), "backup_id": str(uuid.uuid4()), "device_name": "TEST ONLY backup acceptance",
+            "payload": {
+                "navigation": {"groups": [{"id": "default", "name": "TEST ONLY"}], "bookmarks": [{"id": "sample", "title": "TEST ONLY", "url": "https://example.invalid/", "groupId": "default", "icon": {"mode": "text", "text": "测", "color": "#2c756a"}}], "preferences": {"openInNewTab": True, "showKnowledge": True, "compact": False}},
+                "appearance": {"theme": "mist", "dim": 24, "blur": 0, "position": "center", "showClock": True, "engine": "bing", "wallpaper": None},
+            },
+        }
+        saved = request("/api/backups/chrome", backup_data, method="POST")
+        assert saved["saved"] and request("/api/backups/chrome", backup_data, method="POST")["duplicate"]
+        try:
+            request("/api/backups/chrome", agent=True)
+            raise AssertionError("Agent unexpectedly read a browser backup")
+        except urllib.error.HTTPError as exc:
+            assert exc.code == 403
+        wait_for(lambda: request("/api/status").get("pending_tool_writes") == [] and not request("/api/status")["git"]["ahead"], "backup automatic push")
+        helper("""
+import json,subprocess,sys
+from pathlib import Path
+subprocess.run(['git','-C','/acceptance/peer','pull','--ff-only'],check=True,capture_output=True)
+backup=json.loads((Path('/acceptance/peer')/sys.argv[1]).read_text())
+assert backup['payload']['navigation']['bookmarks'][0]['title']=='TEST ONLY'
+""", saved["path"])
+        assert request("/api/backups/chrome")["backups"][0]["backup_id"] == backup_data["backup_id"]
+        restored = request("/api/backups/chrome/" + backup_data["device_id"] + "/" + backup_data["backup_id"])
+        assert restored["backup"]["payload"] == backup_data["payload"]
+        report["tests"]["backup_idempotency_owner_boundary_automatic_push_peer_restore"] = True
+        shared = {"device_id": backup_data["device_id"], "device_name": "TEST ONLY shared A", "request_id": str(uuid.uuid4()), "base_revision": None, "payload": backup_data["payload"]}
+        first_shared = request("/api/workspace/chrome", shared, method="POST")["revision"]
+        assert request("/api/workspace/chrome", shared, method="POST")["duplicate"]
+        peer_shared = json.loads(json.dumps(shared))
+        peer_shared.update(device_id=str(uuid.uuid4()), device_name="TEST ONLY shared B", request_id=str(uuid.uuid4()), base_revision=first_shared["revision"])
+        peer_shared["payload"]["appearance"]["engine"] = "google"
+        request("/api/workspace/chrome", peer_shared, method="POST")
+        stale = json.loads(json.dumps(shared))
+        stale.update(request_id=str(uuid.uuid4()), base_revision=first_shared["revision"])
+        stale["payload"]["appearance"]["engine"] = "baidu"
+        try:
+            request("/api/workspace/chrome", stale, method="POST")
+            raise AssertionError("Stale shared revision unexpectedly overwrote current head")
+        except urllib.error.HTTPError as exc:
+            assert exc.code == 409
+        assert request("/api/workspace/chrome")["head"]["payload"] == peer_shared["payload"]
+        assert request("/api/backups/chrome/" + stale["device_id"] + "/" + stale["request_id"])["backup"]["payload"] == stale["payload"]
+        try:
+            request("/api/workspace/chrome", agent=True)
+            raise AssertionError("Agent unexpectedly read shared settings")
+        except urllib.error.HTTPError as exc:
+            assert exc.code == 403
+        wait_for(lambda: request("/api/status").get("pending_tool_writes") == [] and not request("/api/status")["git"]["ahead"], "shared versions automatic push")
+        helper("""
+import subprocess
+from kbcli.vault import Vault
+from kbcli.operations import Operations
+from kbcli.workspace import Workspace
+subprocess.run(['git','-C','/acceptance/peer','pull','--ff-only'],check=True,capture_output=True)
+v=Vault('/acceptance/peer','/acceptance/peer-state')
+assert Workspace(v,Operations(v)).read()['head']['payload']['appearance']['engine']=='google'
+""")
+        report["tests"]["shared_cas_conflict_preservation_idempotency_peer_pull"] = True
         shell("docker", "stop", "-t", "60", worker_name)
         shell("docker", "rm", worker_name)
         helper("""

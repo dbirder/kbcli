@@ -32,7 +32,7 @@ python3 scripts/build_nas_image_context.py --output /path/to/new/nas-context
 
 ```bash
 python3 /path/to/kbcli/scripts/verify_nas_image.py \
-  --compose-dir /path/to/hermes-agent --image kbcli:0.1.2-nas1
+  --compose-dir /path/to/hermes-agent --image kbcli:0.1.4-nas1
 ```
 
 此入口需要已有 API 容器来获取网络，创建 Compose 项目 tests/image-acceptance-* 下的独立知识库、bare 远端和两个副本，使用测试令牌与 loopback 18770 端口。它验证自动提交推送、周期拉取、用户/agent 完成权限、日期清除、冲突保留两端 HEAD 及重启后继续暂停。默认清理自己创建的 API/worker 容器，保留目录和 report.json 供核查；--keep-api 仅在成功后保留隔离 API 以供页面联调。--keep-api 仍只绑定 NAS loopback，不自动发布到局域网；跨设备页面联调需按现有网络策略显式提供隔离 API。应先确认测试端口可用，不向正式 Gitee 写测试内容。
@@ -54,3 +54,14 @@ install -m 755 /path/to/kbcli/deploy/nas/kbcli-autosync-host ./scripts/kbcli-aut
 ```
 
 status/health 不恢复调度；pause/resume 为管理员显式操作。遇到冲突保留暂停，先处理知识库状态，再按部署文档的条件校验恢复。
+
+浏览器自动备份的服务与插件版本、正式升级和回归结果见[0.5.0 验收](../../docs/verification/chrome-backups-0.5.0.md)。切换 0.1.4 镜像时给 activate_nas_image.py 增加 `--expected-version 0.1.4`。
+
+共享配置同步需要 kbcli 0.1.4；机制、冲突保护与部署验收见[多设备同步](../../docs/chrome-workspace-sync.md)和[0.6.0 验收](../../docs/verification/chrome-workspace-0.6.0.md)。
+
+
+## 图标备份兼容性（2026-10-22）
+
+当前插件为每个收藏固定保存 icon，NAS 必须为 kbcli 0.1.5 或以上。0.1.4 会拒绝 icon 字段并返回 BACKUP_INVALID，插件显示“备份内容未通过校验，原数据已保留”。不要删除图标或跳过校验，应升级服务端。正式修复记录见 [0.1.5 备份修复验收](../../docs/verification/nas-icon-backup-0.1.5.md)。
+
+升级脚本会先停写并保留配置、知识库及状态目录私有副本；恢复服务后严格核对所有原文件不变，允许浏览器正常补传新增的不可变备份记录，避免把修复后的正常上传当作数据异常。Hermes、令牌、数据挂载及原同步暂停状态保持不变。

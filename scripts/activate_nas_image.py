@@ -1,6 +1,7 @@
 """Switch a separated NAS layout to a locally built kbcli image; preserve data and tokens."""
 import argparse
 import json
+import re
 import shutil
 import time
 from datetime import datetime, timezone
@@ -36,9 +37,23 @@ def wait_healthy(base, service, timeout=120):
     raise RuntimeError(f"Health check did not pass: {service}")
 
 
-def activate(base, image):
+def assert_preserved_knowledge(before, after):
+    # Once the new API is healthy, existing browser outboxes may immediately
+    # create immutable backup records. Allow only these new records; every
+    # pre-existing file must still match exactly, including old backups.
+    if any(after.get(path) != digest for path, digest in before.items()):
+        raise RuntimeError("Existing knowledge or backup content changed during activation")
+    uuid = r"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"
+    pattern = rf"assets/app-backups/chrome-kb/(?:devices/{uuid}/{uuid}|shared/{uuid}|wallpapers/[0-9a-f]{{64}})\.json"
+    added = set(after) - set(before)
+    if any(not re.fullmatch(pattern, path) for path in added):
+        raise RuntimeError("Unexpected new knowledge content during activation")
+    return len(added)
+
+
+def activate(base, image, expected_version="0.1.2"):
     base = base.resolve()
-    run(base, "docker", "run", "--rm", "--network", "none", image, "-c", "import kbcli; assert kbcli.__version__=='0.1.2'")
+    run(base, "docker", "run", "--rm", "--network", "none", image, "-c", f"import kbcli; assert kbcli.__version__=={expected_version!r}")
     config_path = base / "docker-compose.yaml"
     config = load_yaml(config_path.read_text())
     previous = json.loads(compose(base, "config", "--format", "json"))
@@ -59,6 +74,11 @@ def activate(base, image):
     compose(base, "stop", "-t", "120", "kbcli-sync", timeout=150)
     compose(base, "stop", "-t", "120", "kbcli", timeout=150)
     before = knowledge_hashes(base / "knowledge-base")
+    # Both writers are stopped: keep a consistent, private rollback copy.
+    for relative in ("knowledge-base", "kbcli-data/state", "kbcli-sync-data"):
+        source = base / relative
+        if source.is_dir():
+            shutil.copytree(source, backup / relative, symlinks=True)
     shutil.copy2(candidate, config_path)
     compose(base, "config", "--quiet")
     current = json.loads(compose(base, "config", "--format", "json"))
@@ -67,14 +87,14 @@ def activate(base, image):
     compose(base, "up", "-d", "--no-deps", "kbcli", timeout=150)
     wait_healthy(base, "kbcli")
     compose(base, "up", "-d", "--no-deps", "kbcli-sync", timeout=150)
-    assert before == knowledge_hashes(base / "knowledge-base")
+    new_backup_records = assert_preserved_knowledge(before, knowledge_hashes(base / "knowledge-base"))
     if not original_pause:
         value = json.loads(pause.read_text())
         assert value["error"]["code"] == "OPERATOR_PAUSED" and value["error"]["message"] == marker
         args = current["services"]["kbcli-sync"]["command"]
         compose(base, "exec", "-T", "kbcli-sync", "/usr/local/bin/python", *args[:-1], "resume")
         wait_healthy(base, "kbcli-sync")
-    report = {"stage": "image-active", "image": image, "backup": str(backup), "original_pause": original_pause, "knowledge_files": len(before)}
+    report = {"stage": "image-active", "image": image, "backup": str(backup), "original_pause": original_pause, "knowledge_files": len(before), "new_backup_records": new_backup_records}
     (backup / "report.json").write_text(json.dumps(report, indent=2))
     print(json.dumps(report, ensure_ascii=False))
 
@@ -83,5 +103,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--compose-dir", type=Path, required=True)
     parser.add_argument("--image", required=True)
+    parser.add_argument("--expected-version", default="0.1.2")
     options = parser.parse_args()
-    activate(options.compose_dir, options.image)
+    activate(options.compose_dir, options.image, options.expected_version)

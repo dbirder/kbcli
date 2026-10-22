@@ -1,6 +1,6 @@
 # NAS：独立 kbcli 镜像与数据分离
 
-2026-10-18 已将现有部署从“三个容器共享完整 hermes-data”迁移为以下布局。Hermes 原镜像、模型配置、服务地址与认证令牌保持原值；API 和调度器运行独立的 `kbcli:0.1.2-nas1` 镜像。实测见 [迁移验收](verification/nas-layout-2026-10-18.md)。
+2026-10-18 已将现有部署从“三个容器共享完整 hermes-data”迁移为以下布局。Hermes 原镜像、模型配置、服务地址与认证令牌保持原值；API 和调度器运行独立镜像，2026-10-19 已升级为 `kbcli:0.1.4-nas1`。实测见 [迁移验收](verification/nas-layout-2026-10-18.md)。
 
 ## 当前目录和挂载
 
@@ -38,7 +38,7 @@ Hermes 的客户端和知识库沿用容器内 `/opt/data/kbcli`、`/opt/data/kn
 ```bash
 python3 scripts/build_nas_image_context.py --output /path/to/new/nas-image-context
 # 上传整个白名单上下文到 NAS 后：
-docker build -t kbcli:0.1.2-nas1 /path/to/nas-image-context
+docker build -t kbcli:0.1.4-nas1 /path/to/nas-image-context
 ```
 
 构建器只输出当前应用 wheel、带哈希的锁定运行依赖、Dockerfile、健康检查和同步脚本，附文件哈希清单。上下文不包含知识库、Git 私钥、服务 env、本机虚拟环境或开发技能；Docker COPY 再次限定输入。
@@ -64,7 +64,7 @@ volumes:
 1. `scripts/migrate_nas_layout.py --compose-dir /path/to/hermes-agent --client-status-launcher /path/to/kbcli/deploy/nas/kbcli-autosync-client.py`：记录原暂停状态；若原先运行，仅创建本次迁移暂停。等待调度结束后停止 API/Hermes，完整归档 hermes-data（含 Git、数据库、配置和凭据），拆分目录、验证知识文件哈希及令牌一致，再使用原镜像启动。备份位于受限的 backups 目录。
 2. 第一阶段验证健康、Hermes 客户端、知识文件、操作日志与凭据后，仅当暂停原因仍是本次迁移且原先未暂停，才用 resume 的条件校验恢复。原先存在的冲突/人工暂停不自动清除。
 3. 构建独立镜像，在临时知识库测试新增/完成、以只读卷验证实际 Gitee 访问。
-4. `scripts/activate_nas_image.py --compose-dir /path/to/hermes-agent --image kbcli:0.1.2-nas1`：备份第一阶段 Compose，再次按原状态暂停调度，仅切换 API 和同步镜像。保持知识与状态挂载、校验原令牌、健康后只恢复本次暂停。Hermes 不需再次重启。
+4. `scripts/activate_nas_image.py --compose-dir /path/to/hermes-agent --image kbcli:0.1.4-nas1 --expected-version 0.1.4`：备份第一阶段 Compose，再次按原状态暂停调度，仅切换 API 和同步镜像。保持知识与状态挂载、校验原令牌、健康后只恢复本次暂停。Hermes 不需再次重启。
 
 不要将旧虚拟环境直接移动到不同的容器路径，或只复制正在写入的 SQLite 主文件。保留操作日志和暂停标记；索引可重建不代表操作日志可丢弃。迁移期间同一知识库只启动一个正式写入服务。
 
@@ -103,3 +103,11 @@ python3 scripts/migrate_nas_layout.py --compose-dir /path/to/hermes-agent \
 本地测试、实际上下文构建、NAS 隔离 Git 双副本回归、正式只读状态与挂载检查见 [提交验收](verification/nas-release-2026-10-19.md)。当前正式运行镜像及容器保持原部署；本次未重新执行正式数据迁移、镜像切换或回滚。
 
 NAS 测试入口见 [deploy/nas/README](../deploy/nas/README.md)，浏览器测试代理支持本地 SVG、Markdown 解析器及知识只读接口。原生 Chrome 安装权限验收仍按插件文档单独执行。
+
+## 浏览器备份服务升级（2026-10-19）
+
+当前 API/sync 镜像升级为 `kbcli:0.1.3-nas1`，备份接口、独立设备 JSON 和壁纸去重由 API 提供，继续复用原受控操作日志与 Git 调度器。无需新增容器或扩大 Hermes 挂载与令牌权限。升级过程、保留检查及正式只读复查见[备份验收](verification/chrome-backups-0.5.0.md)。
+
+## 共享同步升级（2026-10-19）
+
+当前 API 与调度镜像为 `kbcli:0.1.4-nas1`。新增仅用户可访问的共享版本接口，保持独立数据挂载、原凭据与持久暂停；Hermes 不重建。详见[0.6.0 部署验收](verification/chrome-workspace-0.6.0.md)。

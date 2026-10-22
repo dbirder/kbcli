@@ -177,11 +177,19 @@ class Git:
         if staged:
             raise KBError("GIT_INDEX_DIRTY", "已有暂存内容，不合并提交未知修改")
         for entry in writes:
-            p = self.vault.safe(entry["path"], business=True)
+            p = operations.recorded_path(entry)
             if not p.is_file() or sha(p.read_bytes()) != entry["after_hash"]:
                 raise KBError(
                     "UNKNOWN_MODIFICATION", "工具写入之后文件又被修改，暂停提交", path=entry["path"]
                 )
+            if entry.get("kind") == "chrome_workspace":
+                from .workspace import validate_revision
+
+                validate_revision(entry["path"], p.read_text())
+            if entry.get("kind") in {"chrome_backup", "chrome_wallpaper"}:
+                from .backups import validate_record
+
+                validate_record(entry["path"], entry["kind"], p.read_text())
             previous = self.run("show", "HEAD:" + entry["path"], check=False, binary=True)
             baseline = sha(previous.stdout) if previous.returncode == 0 else None
             if baseline != entry["baseline_hash"] and baseline != entry["after_hash"]:

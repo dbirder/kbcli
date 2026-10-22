@@ -241,3 +241,23 @@ def test_image_activation_preserves_an_existing_conflict_pause(tmp_path, monkeyp
     assert (tmp_path / "knowledge-base/note.md").read_text() == "keep knowledge"
     report = json.loads(next((tmp_path / "backups").glob("*/report.json")).read_text())
     assert report["original_pause"] is True
+    snapshot = next((tmp_path / "backups").glob("*/report.json")).parent
+    assert (snapshot / "knowledge-base/note.md").read_text() == "keep knowledge"
+    assert (snapshot / "kbcli-sync-data/pause.json").read_bytes() == marker
+
+
+def test_image_activation_allows_only_new_immutable_backups_without_overwriting_old_data(monkeypatch):
+    import sys
+    monkeypatch.setitem(sys.modules, "migrate_nas_layout", layout)
+    spec = importlib.util.spec_from_file_location("activation_preservation", ROOT / "scripts/activate_nas_image.py")
+    image = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(image)
+    identifier = "6cf5fae0-9a6e-42d1-8a3e-2186f10a5488"
+    backup = f"assets/app-backups/chrome-kb/devices/{identifier}/{identifier}.json"
+    old = {"notes/existing.md": "original"}
+    assert image.assert_preserved_knowledge(old, {**old, backup: "new"}) == 1
+    for after in [{}, {"notes/existing.md": "changed"}, {**old, "notes/new.md": "new"}, {**old, "assets/app-backups/chrome-kb/devices/bad.json": "new"}]:
+        with pytest.raises(RuntimeError):
+            image.assert_preserved_knowledge(old, after)
+    with pytest.raises(RuntimeError):
+        image.assert_preserved_knowledge({**old, backup: "original"}, {**old, backup: "changed"})
