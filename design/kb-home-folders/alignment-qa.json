@@ -1,0 +1,16 @@
+{
+  "normal": {
+    "width": 148,
+    "alignment": "center",
+    "centerError": 0
+  },
+  "compact": {
+    "width": 124,
+    "alignment": "center",
+    "centerError": 0
+  },
+  "preference": "pointer and Enter; reload and other tab match; defaults center",
+  "scope": "homepage folder content and folder website grid",
+  "data": "navigation/appearance unchanged by preference",
+  "mobile": "three columns at 390px without overflow"
+}

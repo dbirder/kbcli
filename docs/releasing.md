@@ -37,7 +37,7 @@ python3 /path/to/new-test-vault/.agents/skills/knowledge-maintain/scripts/run_kb
 
 ## Chrome 插件
 
-插件版本独立维护在 `extensions/chrome-kb/manifest.json`，当前为 0.15.8；含图标备份与共享同步需配套 kbcli 0.1.5+。提交前运行：
+插件版本独立维护在 `extensions/chrome-kb/manifest.json`，当前为 0.15.10；含图标备份与共享同步需配套 kbcli 0.1.5+。提交前运行：
 
 ```bash
 node --test tests/extension/*.test.mjs
@@ -45,7 +45,7 @@ uv run --locked pytest -q
 python3 scripts/build_extension.py --output /path/to/new-release/chrome-kb
 ```
 
-输出父目录中会同时生成 `chrome-kb-0.15.8.zip`，目录或同版本 ZIP 已存在时拒绝覆盖；重新构建使用新的输出父目录。构建器仅复制白名单资源并生成哈希清单，开发技能、测试 shim、配置和凭据不进入扩展包。Git 提交包含源码、测试、说明、截图和官方技能的来源/许可证；ZIP 与解压产物继续留在被忽略的 dist 目录中。
+输出父目录中会同时生成 `chrome-kb-0.15.10.zip`，目录或同版本 ZIP 已存在时拒绝覆盖；重新构建使用新的输出父目录。构建器仅复制白名单资源并生成哈希清单，开发技能、测试 shim、配置和凭据不进入扩展包。Git 提交包含源码、测试、说明、截图和官方技能的来源/许可证；ZIP 与解压产物继续留在被忽略的 dist 目录中。
 
 测试入口、隔离服务和真实点击场景见 [插件验证说明](../tests/extension/README.md)，本次 0.3.0–0.4.1 整理结果见 [提交验收](verification/chrome-0.4.1-release.md)。
 
@@ -73,6 +73,8 @@ NAS 工具本轮提交范围与测试结果见 [2026-10-19 验收](verification/
 
 0.6.0 共享同步需 kbcli 0.1.4，发布时增加 test_workspace.py、workspace.test.mjs 和 verify_workspace.mjs；先跑 NAS 隔离共享 CAS/保护备份验收，再用 activate_nas_image.py 的 `--expected-version 0.1.4` 切换镜像。
 
-## 当前工作台验收（0.15.8）
+## 当前工作台验收（0.15.10）
 
 当前版本使用 Orbit 居中文件夹/知识库/设置弹窗及本地 Motion 动效，支持单列知识列表、折叠目录、全屏阅读与首屏缓存。原有控件、备份、拖拽、检查及图标工具完整保留。各轮界面验证记录位于 design/，包含个人壁纸的本机 previews/*.png 不纳入 Git；正式扩展包仍由白名单构建。
+
+0.15.10 移除管理模式并保留直接编辑、拖拽与键盘排序，首页文件夹改为固定紧凑卡片，新增本机通用收藏对齐偏好。验收见 design/kb-direct-folders/、design/kb-home-folders/，浏览器用例见 verify_direct_folders.mjs、verify_home_alignment.mjs。

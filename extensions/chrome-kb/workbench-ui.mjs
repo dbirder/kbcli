@@ -2,11 +2,11 @@ import {animateContent,requestDialogClose} from './motion-ui.mjs';
 const $=id=>document.getElementById(id);
 const node=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 const KEY='workbenchInterface';
-const interfacePreferences=value=>({colorScheme:value?.colorScheme==='light'?'light':'dark',reducedMotion:value?.reducedMotion===true,readerSize:[15,16,18].includes(value?.readerSize)?value.readerSize:16,textGlow:value?.textGlow===true,wallpaperBars:value?.wallpaperBars!==false});
+const interfacePreferences=value=>({colorScheme:value?.colorScheme==='light'?'light':'dark',reducedMotion:value?.reducedMotion===true,readerSize:[15,16,18].includes(value?.readerSize)?value.readerSize:16,textGlow:value?.textGlow===true,wallpaperBars:value?.wallpaperBars!==false,collectionAlignment:value?.collectionAlignment==='left'?'left':'center'});
 export async function initWorkbench(){
   let prefs=interfacePreferences();
   try{prefs=interfacePreferences((await chrome.storage.local.get(KEY))[KEY]);}catch{/* A storage read failure keeps safe visual defaults. */}
-  const apply=()=>{document.documentElement.dataset.colorScheme=prefs.colorScheme;document.documentElement.dataset.motion=prefs.reducedMotion?'reduce':'normal';document.documentElement.dataset.textGlow=prefs.textGlow?'on':'off';document.documentElement.dataset.wallpaperBars=prefs.wallpaperBars?'on':'off';document.documentElement.style.setProperty('--reader-size',prefs.readerSize+'px');document.querySelector('meta[name="color-scheme"]').content=prefs.colorScheme;try{localStorage.setItem('kb-first-paint-scheme',prefs.colorScheme);}catch{/* First-paint cache is optional; chrome.storage remains authoritative. */}};
+  const apply=()=>{document.documentElement.dataset.collectionAlignment=prefs.collectionAlignment;document.documentElement.dataset.colorScheme=prefs.colorScheme;document.documentElement.dataset.motion=prefs.reducedMotion?'reduce':'normal';document.documentElement.dataset.textGlow=prefs.textGlow?'on':'off';document.documentElement.dataset.wallpaperBars=prefs.wallpaperBars?'on':'off';document.documentElement.style.setProperty('--reader-size',prefs.readerSize+'px');document.querySelector('meta[name="color-scheme"]').content=prefs.colorScheme;try{localStorage.setItem('kb-first-paint-scheme',prefs.colorScheme);}catch{/* First-paint cache is optional; chrome.storage remains authoritative. */}};
   const save=async changes=>{const previous={...prefs};Object.assign(prefs,changes);apply();try{await chrome.storage.local.set({[KEY]:prefs});}catch{prefs=previous;apply();$('toast').className='toast error';$('toast').textContent='界面偏好未保存，请检查浏览器存储空间';$('toast').hidden=false;}};
   apply();
   const footer=$('show-knowledge-button').closest('footer'),enable=$('show-knowledge-button'),count=$('site-total'),workspace=$('workspace-pill');
@@ -39,10 +39,17 @@ export async function initWorkbench(){
     const label=node('label','toggle-row'),copy=node('span','',title),control=node('input');copy.append(node('small','',description));control.id=id;control.type='checkbox';control.setAttribute('role','switch');control.checked=prefs[key];label.htmlFor=id;label.append(copy,control);appearanceAnchor.after(label);appearanceAnchor=label;appearanceToggles[key]=control;control.onchange=async()=>{await save({[key]:control.checked});syncInterface();};
   }
 
+  const alignment=node('fieldset','choice-field');alignment.id='collection-alignment';alignment.append(node('legend','','收藏对齐方式'));
+  const alignmentChoices=node('div','theme-options');
+  for(const [value,title]of [['center','居中'],['left','靠左']]){
+    const b=node('button','',title);b.type='button';b.dataset.collectionAlignment=value;b.setAttribute('aria-pressed',String(prefs.collectionAlignment===value));b.onclick=async()=>{await save({collectionAlignment:value});syncInterface();};alignmentChoices.append(b);
+  }
+  alignment.append(alignmentChoices,node('p','field-help','统一调整首页文件夹内容和分组内网站的排列方向；紧凑布局仍独立控制。'));appearanceAnchor.after(alignment);
+
   const motion=node('section','settings-section');motion.append(node('h3','','轻盈弹簧'),node('p','dialog-copy','短距离轻抬，轻微弹簧缓冲。退出时保持文字与窗口尺寸。'));
   const reduce=node('label','toggle-row'),copy=node('span','','减少动态效果'),small=node('small','','系统偏好始终优先；开启后取消位移。'),input=node('input');input.id='pref-reduced-motion';input.type='checkbox';input.setAttribute('role','switch');input.checked=prefs.reducedMotion;copy.append(small);reduce.htmlFor=input.id;reduce.append(copy,input);input.onchange=async()=>{await save({reducedMotion:input.checked});syncInterface();};motion.append(reduce,node('p','field-help','界面配色、动效和阅读字号保存在此设备。原有收藏、背景、备份与同步配置全部保留。'));panels.motion.append(motion);
   const audit=node('button','secondary','检查网站可用性');audit.type='button';audit.onclick=()=>$('audit-sites-button').click();sections[2].prepend(audit);
-  frame.append(nav,pages);const done=node('div','settings-bottom'),doneButton=node('button','primary','完成');doneButton.type='button';doneButton.onclick=()=>requestDialogClose(dialog);done.append(node('span','field-help','修改即时保存，备份与连接操作需单独确认'),doneButton);dialog.replaceChildren(heading,frame,done);if(oldFooter){oldFooter.textContent='KB 工作台 0.15.8';panels.connection.append(oldFooter);}
+  frame.append(nav,pages);const done=node('div','settings-bottom'),doneButton=node('button','primary','完成');doneButton.type='button';doneButton.onclick=()=>requestDialogClose(dialog);done.append(node('span','field-help','修改即时保存，备份与连接操作需单独确认'),doneButton);dialog.replaceChildren(heading,frame,done);if(oldFooter){oldFooter.textContent='KB 工作台 0.15.10';panels.connection.append(oldFooter);}
   const selectConnection=()=>select('connection',false);$('knowledge-settings').addEventListener('click',selectConnection);$('empty-action').addEventListener('click',()=>{if($('empty-action').textContent==='连接知识库')selectConnection();});
   workspace.addEventListener('click',()=>select('sync',false));
   // Existing workspace handler invokes settings-button before scrolling; retain
@@ -51,7 +58,7 @@ export async function initWorkbench(){
   const watchErrors=new MutationObserver(entries=>{for(const entry of entries){const error=entry.target.nodeType===1?entry.target:entry.target.parentElement;if(error?.matches('.form-error:not([hidden])')){const page=error.closest('.settings-page');if(page&&dialog.open)select(page.id.replace('settings-page-',''));}}});
   watchErrors.observe(pages,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']});
   nav.onkeydown=e=>{if(!['ArrowDown','ArrowUp','ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const ids=definitions.map(x=>x[0]),index=ids.indexOf(selected),next=e.key==='Home'?0:e.key==='End'?ids.length-1:(index+(['ArrowDown','ArrowRight'].includes(e.key)?1:-1)+ids.length)%ids.length;select(ids[next]);$('settings-nav-'+ids[next]).focus();};select('appearance',false);
-  function syncInterface(){apply();input.checked=prefs.reducedMotion;for(const [key,control]of Object.entries(appearanceToggles))control.checked=prefs[key];document.querySelectorAll('.reader-size[data-size]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.size)===prefs.readerSize)));dialog.querySelectorAll('[data-color-scheme]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.colorScheme===prefs.colorScheme)));}
+  function syncInterface(){apply();dialog.querySelectorAll('[data-collection-alignment]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.collectionAlignment===prefs.collectionAlignment)));input.checked=prefs.reducedMotion;for(const [key,control]of Object.entries(appearanceToggles))control.checked=prefs[key];document.querySelectorAll('.reader-size[data-size]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.size)===prefs.readerSize)));dialog.querySelectorAll('[data-color-scheme]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.colorScheme===prefs.colorScheme)));}
   chrome.storage.onChanged.addListener((changes,area)=>{if(area==='local'&&changes[KEY]){const value=changes[KEY].newValue;prefs=interfacePreferences(value);syncInterface();}});
   // Fixed controls; only results scroll in tasks and knowledge tabs.
   const taskPanel=document.querySelector('.task-panel');taskPanel.querySelector('.section-heading').after($('filters'));

@@ -1,0 +1,19 @@
+{
+  "normal": {
+    "width": 720,
+    "centerError": 0,
+    "cardWidth": 112,
+    "overflow": false
+  },
+  "compact": {
+    "width": 720,
+    "centerError": 0,
+    "cardWidth": 92,
+    "overflow": false
+  },
+  "editing": "homepage group ellipsis, folder toolbar group editor, site ellipsis",
+  "keyboard": "group and website directional sorting without management mode",
+  "many": "18 sites centered; own scrolling",
+  "mobile": "390px no overflow",
+  "management": "both mode buttons removed"
+}

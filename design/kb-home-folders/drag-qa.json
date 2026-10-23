@@ -1,0 +1,9 @@
+{
+  "middle": "insert before third; target stays open",
+  "cancel": "fast pass, Escape, preview exit and header cancellation",
+  "scroll": "target edge scroll and append; homepage stays fixed",
+  "empty": "insert into empty folder",
+  "quick": "immediate drop remains supported, no delayed reopen",
+  "conflict": "new revision preserved",
+  "total": 52
+}
