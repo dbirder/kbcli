@@ -34,10 +34,11 @@ export async function initWorkbench(){
   // Reuse every original settings section and input; business listeners and
   // validation retain their IDs, forms, revisions and permission boundaries.
   const dialog=$('settings-dialog'),heading=dialog.querySelector('.dialog-heading'),sections=[...dialog.querySelectorAll(':scope > .settings-section')],oldFooter=dialog.querySelector('.drawer-footer');
-  const pages=node('div','settings-pages'),nav=node('nav','settings-navigation'),frame=node('div','settings-frame');nav.setAttribute('aria-label','设置分类');nav.setAttribute('role','tablist');
+  heading.querySelector('h2').after(node('p','settings-intro','按你的习惯布置工作台。'));
+  const pages=node('div','settings-pages'),nav=node('nav','settings-navigation'),frame=node('div','settings-frame');nav.setAttribute('aria-label','设置分类');nav.setAttribute('role','tablist');nav.setAttribute('aria-orientation','horizontal');
   const definitions=[['appearance','外观与背景'],['motion','动效体验'],['browsing','搜索与浏览'],['data','收藏管理'],['sync','备份与同步'],['connection','NAS 连接']],panels={};
-  let selected='appearance';
-  function select(id,animate=true){selected=id;for(const [name]of definitions){panels[name].hidden=name!==id;const b=$('settings-nav-'+name);b.setAttribute('aria-selected',String(name===id));b.tabIndex=name===id?0:-1;}pages.scrollTop=0;if(animate)animateContent(panels[id]);}
+  let selected='appearance';const settingsScroll=new Map();
+  function select(id,animate=true){settingsScroll.set(selected,pages.scrollTop);selected=id;for(const [name]of definitions){panels[name].hidden=name!==id;const b=$('settings-nav-'+name);b.setAttribute('aria-selected',String(name===id));b.tabIndex=name===id?0:-1;}pages.scrollTop=settingsScroll.get(id)||0;if(animate)animateContent(panels[id]);}
   for(const [id,title]of definitions){const b=node('button','',title);b.type='button';b.id='settings-nav-'+id;b.dataset.settingsTab=id;b.setAttribute('role','tab');b.setAttribute('aria-controls','settings-page-'+id);b.onclick=()=>select(id);nav.append(b);const page=node('div','settings-page');page.id='settings-page-'+id;page.setAttribute('role','tabpanel');page.setAttribute('aria-labelledby',b.id);panels[id]=page;pages.append(page);}
   frame.append(nav,pages);dialog.append(frame);
   panels.appearance.append(sections[0]);panels.browsing.append(sections[1]);panels.data.append(sections[2]);panels.sync.append(sections[3],sections[4]);panels.connection.append(sections[5]);
@@ -58,10 +59,19 @@ export async function initWorkbench(){
   const wallpaperText=node('fieldset','choice-field');wallpaperText.append(node('legend','','壁纸文字颜色'));const textChoices=node('div','theme-options');
   for(const [value,title]of [['light','浅色'],['dark','深色']]){const b=node('button','',title);b.type='button';b.dataset.wallpaperText=value;b.setAttribute('aria-pressed',String(prefs.wallpaperText===value));b.onclick=async()=>{await save({wallpaperText:value});syncInterface();};textChoices.append(b);}
   wallpaperText.append(textChoices,node('p','field-help','只影响壁纸上的时钟和收藏文字；明亮壁纸可选深色，与弹窗配色独立。'));alignment.after(wallpaperText);
+  // Reparent the original controls, preserving IDs, forms, nodes and listeners.
+  const appearanceSection=sections[0],background=node('div','settings-block settings-background'),display=node('div','settings-block settings-display');
+  const backgroundTitle=$('appearance-title'),backgroundCopy=appearanceSection.querySelector('.dialog-copy'),wallpaperActions=appearanceSection.querySelector('.wallpaper-actions'),wallpaperHelp=wallpaperActions.nextElementSibling;
+  const wallpaperRow=node('div','settings-wallpaper-row'),wallpaperAside=node('div','settings-wallpaper-actions');
+  wallpaperAside.append(wallpaperActions,wallpaperHelp,appearanceSection.querySelector('.theme-options[aria-label="背景色调"]'));wallpaperRow.append(appearanceSection.querySelector('.wallpaper-preview-wrap'),wallpaperAside);
+  const backgroundAdjustments=node('div','settings-adjustments');backgroundAdjustments.append($('appearance-dim').closest('.range-label'),$('appearance-blur').closest('.range-label'));
+  backgroundTitle.textContent='壁纸与背景';background.append(backgroundTitle,backgroundCopy,wallpaperRow,backgroundAdjustments,$('appearance-position'));
+  const displayChoices=node('div','settings-choice-grid');displayChoices.append(scheme,wallpaperText,alignment);display.append(node('h3','','显示与布局'),displayChoices,appearanceToggles.textGlow.closest('label'),appearanceToggles.wallpaperBars.closest('label'));
+  appearanceSection.replaceChildren(background,display,$('appearance-error'));
   const motion=node('section','settings-section');motion.append(node('h3','','轻盈弹簧'),node('p','dialog-copy','短距离轻抬，轻微弹簧缓冲。退出时保持文字与窗口尺寸。'));
   const reduce=node('label','toggle-row'),copy=node('span','','减少动态效果'),small=node('small','','系统偏好始终优先；开启后取消位移。'),input=node('input');input.id='pref-reduced-motion';input.type='checkbox';input.setAttribute('role','switch');input.checked=prefs.reducedMotion;copy.append(small);reduce.htmlFor=input.id;reduce.append(copy,input);input.onchange=async()=>{await save({reducedMotion:input.checked});syncInterface();};motion.append(reduce,node('p','field-help','界面配色、动效和阅读字号保存在此设备。原有收藏、背景、备份与同步配置全部保留。'));panels.motion.append(motion);
   const audit=node('button','secondary','检查网站可用性');audit.type='button';audit.onclick=()=>$('audit-sites-button').click();sections[2].prepend(audit);
-  frame.append(nav,pages);const done=node('div','settings-bottom'),doneButton=node('button','primary','完成');doneButton.type='button';doneButton.onclick=()=>requestDialogClose(dialog);done.append(node('span','field-help','修改即时保存，备份与连接操作需单独确认'),doneButton);dialog.replaceChildren(heading,frame,done);if(oldFooter){oldFooter.textContent='KB 工作台 0.16.3';panels.connection.append(oldFooter);}
+  frame.append(nav,pages);const done=node('div','settings-bottom'),doneButton=node('button','primary','完成');doneButton.type='button';doneButton.onclick=()=>requestDialogClose(dialog);done.append(node('span','field-help','修改即时保存，备份与连接操作需单独确认'),doneButton);dialog.replaceChildren(heading,frame,done);if(oldFooter){oldFooter.textContent='KB 工作台 0.17.0';panels.connection.append(oldFooter);}
   const selectConnection=()=>select('connection',false);$('knowledge-settings').addEventListener('click',selectConnection);$('empty-action').addEventListener('click',()=>{if($('empty-action').textContent==='连接知识库')selectConnection();});
   workspace.addEventListener('click',()=>select('sync',false));
   // Existing workspace handler invokes settings-button before scrolling; retain

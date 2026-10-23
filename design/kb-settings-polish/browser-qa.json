@@ -1,0 +1,19 @@
+{
+  "retainedStaticIds": 57,
+  "extraControls": 19,
+  "tabs": "six horizontal categories; pointer and Home/End keyboard",
+  "scroll": "header/navigation/footer fixed; per-category position restored",
+  "appearance": "wallpaper, theme, position and dim controls active; light/dark and compact retained",
+  "data": "icon tool, export and import work",
+  "connection": "test-only NAS connects; secret cleared on close",
+  "sync": "shared sync, backup save, list and restore preview/cancel work",
+  "mobile": "390px no dialog overflow; six categories reachable",
+  "wallpaper": "synthetic PNG upload and reset succeed",
+  "exit": {
+    "frames": 9,
+    "width": 960,
+    "height": 780,
+    "scale": 1
+  },
+  "mobileFooter": "dialog remains above fixed statusbar; Escape works"
+}
