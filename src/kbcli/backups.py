@@ -37,7 +37,7 @@ def validate_payload(data, *, stored=False):
     fields(data, "navigation appearance")
     nav, app = data["navigation"], data["appearance"]
     fields(nav, "groups bookmarks preferences")
-    require(isinstance(nav["groups"], list) and 1 <= len(nav["groups"]) <= 100)
+    require(isinstance(nav["groups"], list) and len(nav["groups"]) <= 100)
     require(isinstance(nav["bookmarks"], list) and len(nav["bookmarks"]) <= 2000)
     ids, names, sites = set(), set(), set()
     for group in nav["groups"]:
@@ -47,7 +47,6 @@ def validate_payload(data, *, stored=False):
         require(group["id"] not in ids and group["name"].strip() not in names)
         ids.add(group["id"])
         names.add(group["name"].strip())
-    require("default" in ids)
     for site in nav["bookmarks"]:
         fields(site, "id title url groupId icon" if "icon" in site else "id title url groupId")
         if "icon" in site:

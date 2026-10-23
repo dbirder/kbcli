@@ -179,3 +179,21 @@ def test_per_bookmark_icons_roundtrip_and_reject_invalid_data(vault):
         data["payload"]["navigation"]["bookmarks"][0]["icon"] = bad
         with pytest.raises(KBError):
             api.save(data)
+
+
+def test_backup_accepts_zero_and_user_named_groups_without_default(vault):
+    api = store(vault)
+    data = request()
+    data["payload"]["navigation"].update(groups=[], bookmarks=[])
+    api.save(data)
+    assert api.read(data["device_id"], data["backup_id"])["backup"]["payload"] == data["payload"]
+    data = request()
+    nav = data["payload"]["navigation"]
+    nav["groups"] = [{"id": "user-work", "name": "手动创建"}]
+    nav["bookmarks"][0]["groupId"] = "user-work"
+    api.save(data)
+    assert api.read(data["device_id"], data["backup_id"])["backup"]["payload"] == data["payload"]
+    invalid = request()
+    invalid["payload"]["navigation"]["groups"] = []
+    with pytest.raises(KBError):
+        api.save(invalid)

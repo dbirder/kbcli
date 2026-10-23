@@ -2,7 +2,7 @@
 # do not overlay onto old services that still mount the full hermes-data directory.
 services:
   kbcli:
-    image: ${KBCLI_IMAGE:-kbcli:0.1.5-nas1}
+    image: ${KBCLI_IMAGE:-kbcli:0.1.6-nas1}
     restart: unless-stopped
     init: true
     user: "10000:10000"
@@ -28,7 +28,7 @@ services:
       driver: json-file
       options: {max-size: 10m, max-file: "3"}
   kbcli-sync:
-    image: ${KBCLI_IMAGE:-kbcli:0.1.5-nas1}
+    image: ${KBCLI_IMAGE:-kbcli:0.1.6-nas1}
     restart: unless-stopped
     init: true
     user: "10000:10000"
