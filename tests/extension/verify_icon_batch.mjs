@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 export async function verifyIconBatch({page:p,baseURL,screenshotDirectory}){
- assert.match(baseURL,/^http:\/\/127\.0\.0\.1:\d+$/);await p.cdp('Emulation.setDeviceMetricsOverride',{width:1280,height:900,deviceScaleFactor:1,mobile:false});await p.goto(baseURL);await p.waitForSelector('#icon-batch-button');
+ assert.match(baseURL,/^http:\/\/127\.0\.0\.1:\d+$/);await p.cdp('Emulation.setDeviceMetricsOverride',{width:1280,height:900,deviceScaleFactor:1,mobile:false});await p.goto(baseURL);await p.waitForSelector('#collection-tools-trigger');
  await p.evaluate(async()=>{
   const {fallbackBookmarkIcon}=await import('/bookmark-icon.mjs'),canvas=document.createElement('canvas');canvas.width=canvas.height=32;canvas.getContext('2d').fillRect(0,0,32,32);const image=canvas.toDataURL('image/webp');
   const sites=[['a','自动图标','https://good1.example/private?token=secret'],['b','失败时保留','https://failure.example/'],['c','自定义图片','https://custom.example/'],['d','手动文字','https://text.example/'],['e','缺失的图标','https://good2.example/']].map(([id,title,url])=>({id,title,url,groupId:'default',icon:fallbackBookmarkIcon(title,url)}));
@@ -8,11 +8,11 @@ export async function verifyIconBatch({page:p,baseURL,screenshotDirectory}){
   localStorage.setItem('kb-test-navigation',JSON.stringify({version:1,revision:crypto.randomUUID(),groups:[{id:'default',name:'图标合成测试'}],bookmarks:sites,preferences:{openInNewTab:true,showKnowledge:false,compact:false}}));localStorage.setItem('kb-test-batch-icon-lookups','0');
  });await p.reload();await p.waitForSelector('.folder-button');
  const wait=fn=>p.waitForFunction(fn,undefined,{timeout:15000}),nav=()=>p.evaluate(()=>JSON.parse(localStorage.getItem('kb-test-navigation'))),calls=()=>p.evaluate(()=>Number(localStorage.getItem('kb-test-batch-icon-lookups')));
- await p.evaluate(()=>{__iconBatchTest.failHosts=['failure.example'];});const original=await nav();await p.click('#icon-batch-button');await p.click('#icon-batch-start');await wait(()=>JSON.parse(localStorage.getItem('kb-test-iconBatch'))?.state==='completed');
+ await p.evaluate(()=>{__iconBatchTest.failHosts=['failure.example'];});const original=await nav();await p.click('#collection-tools-trigger');await p.click('#icon-batch-button');await p.click('#icon-batch-start');await wait(()=>JSON.parse(localStorage.getItem('kb-test-iconBatch'))?.state==='completed');
  let n=await nav(),job=await p.evaluate(()=>JSON.parse(localStorage.getItem('kb-test-iconBatch')));assert.deepEqual(job.rows.map(r=>r.status),['updated','failed','protected','protected','updated']);assert.equal(await calls(),3);
  assert.deepEqual(n.bookmarks.map(({icon,...s})=>s),original.bookmarks.map(({icon,...s})=>s));for(const id of ['b','c','d'])assert.deepEqual(n.bookmarks.find(s=>s.id===id).icon,original.bookmarks.find(s=>s.id===id).icon);
  if(screenshotDirectory)await p.screenshot({path:screenshotDirectory+'/icon-batch-desktop.png'});
- await p.click('[data-close="icon-batch-dialog"]');await p.reload();await p.waitForSelector('#icon-batch-button');assert.equal(await calls(),3);await p.click('#icon-batch-button');assert.equal(await p.evaluate(()=>JSON.parse(localStorage.getItem('kb-test-iconBatch')).id),job.id);
+ await p.click('[data-close="icon-batch-dialog"]');await p.reload();await p.waitForSelector('#collection-tools-trigger');assert.equal(await calls(),3);await p.click('#collection-tools-trigger');await p.click('#icon-batch-button');assert.equal(await p.evaluate(()=>JSON.parse(localStorage.getItem('kb-test-iconBatch')).id),job.id);
  // Chrome-only start must work without asking for any host permission.
  await p.evaluate(()=>{__captureTest.deny=true;__iconBatchTest.failHosts=['failure.example'];});await p.click('#icon-batch-start');await wait(()=>JSON.parse(localStorage.getItem('kb-test-iconBatch')).state==='completed');assert.equal(await calls(),6);
  await p.evaluate(()=>{__captureTest.deny=false;__iconBatchTest.failHosts=['failure.example'];});await p.click('label[for="icon-batch-custom"]');await p.click('#icon-batch-start');await wait(()=>JSON.parse(localStorage.getItem('kb-test-iconBatch')).state==='completed');n=await nav();assert.ok(n.bookmarks.filter(s=>s.id!=='b').every(s=>s.icon.mode==='auto'));

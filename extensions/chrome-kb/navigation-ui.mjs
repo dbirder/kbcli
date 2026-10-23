@@ -23,7 +23,7 @@ const $ = id => document.getElementById(id);
 const node = (tag, className, text) => { const n = document.createElement(tag); n.className = className || ''; if (text !== undefined) n.textContent = text; return n; };
 export async function initNavigation({send,toast,onPreferences=()=>{}}) {
   const audit=await initSiteAudit({send,toast});
-  let folders = true;
+  let folders = true,createSiteAfterGroup=false;
   let preparingSite=false,creationURL=null,creationIcon=null;
   let data = null, selected = 'all', editingSite = null, editingGroup = null, siteRevision, groupRevision, busy = false;
   const error = showFormError;
@@ -264,7 +264,7 @@ export async function initNavigation({send,toast,onPreferences=()=>{}}) {
     const sites=ordered.filter(s=>`${s.title} ${s.url}`.toLowerCase().includes(query));
     $('folder-title').textContent=group.name;$('folder-count').textContent=`${ordered.length} 个网站`;
     $('folder-sites').dataset.groupId=group.id;
-    $('folder-sites').replaceChildren(...sites.map(s=>siteCard(s,ordered,query)));$('folder-empty').hidden=sites.length>0;
+    $('folder-sites').replaceChildren(...sites.map(s=>siteCard(s,ordered,query)));$('folder-empty').hidden=sites.length>0;$('folder-empty').textContent=query?'没有找到匹配的网站，换个关键词试试。':'这个分组还没有网站，点击“添加网站”开始收藏。';
     $('folder-drag-hint').hidden=Boolean(query);
     $('folder-drag-hint').textContent=data.groups.length>1?'拖出窗口移到其他文件夹；停留片刻展开，可选择插入位置。':'直接拖动图标调整顺序，也可使用方向键移动。';
     if(!query)sortable($('folder-sites'),'site',group.id);restore();
@@ -278,7 +278,7 @@ export async function initNavigation({send,toast,onPreferences=()=>{}}) {
       const sites=data.bookmarks.filter(s=>s.groupId===group.id);
       if(folders&&!query){
         const tile=node('div','folder-tile');tile.dataset.groupId=group.id;const button=node('button','folder-button');button.dataset.focusKey=`group:${group.id}:filter`;button.setAttribute('aria-label',`打开分组：${group.name}，${sites.length} 个网站`);
-        const preview=node('span','folder-preview');for(const site of sites.slice(0,9))preview.append(icon(site,true));if(!sites.length)preview.append(node('span','folder-blank','＋'));
+        const preview=node('span','folder-preview');for(const site of sites.slice(0,9))preview.append(icon(site,true));if(!sites.length){const blank=node('span','folder-blank');blank.setAttribute('aria-hidden','true');blank.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="4" y="4" width="16" height="16" rx="5" stroke-dasharray="3 3"/></svg>';preview.append(blank);}
         button.append(preview,node('span','folder-label',group.name),node('span','folder-size',`${sites.length} 个网站`));
         button.addEventListener('click',()=>{selected=group.id;$('folder-search').value='';renderFolder();showDialog('folder-dialog','all-groups-button');});tile.append(button);const handle=grip(`拖动分组：${group.name}`);handle.dataset.focusKey=`group:${group.id}:drag`;keyboardMove(handle,'group',group.id);tile.append(handle);
         const controls=node('div','group-controls');controls.append(action(`编辑分组：${group.name}`,'⋯',()=>openGroup(group),false,`group:${group.id}:edit`));tile.append(controls);container.append(tile);
@@ -290,12 +290,14 @@ export async function initNavigation({send,toast,onPreferences=()=>{}}) {
     }
     $('site-empty').hidden=data.bookmarks.length>0&&(!query||visible.length>0);
     $('site-empty-title').textContent=query?'没有找到匹配的收藏':'收藏你的日常。';$('site-empty-copy').textContent=query?'试试名称或域名，或使用右侧按钮搜索网页。':'从一个网站、一个分组开始，整理属于自己的空间。';$('site-empty-action').textContent=query?'清空搜索':'收藏第一个网站';
+    if(!data.groups.length){$('site-empty-title').textContent='从一个分组开始。';$('site-empty-copy').textContent='按你的习惯创建分组，再添加网站。';$('site-empty-action').textContent='新建第一个分组';}
     $('all-groups-button').setAttribute('aria-pressed',String(!folders));$('all-groups-button').querySelector('span').textContent=folders?'全部网站':'分组视图';
     if(folders&&!query)sortable(container,'group');
     if($('folder-dialog').open||selected!=='all')renderFolder();restore();
   }
-  function openSite(site = null, groupId = selected === 'all' ? 'default' : selected) {
+  function openSite(site = null, groupId = selected === 'all' ? data?.groups[0]?.id : selected) {
     if (!data || busy) return;
+    if(!data.groups.length){openGroup(null,{continueToSite:true});return;}
     editingSite = site; siteRevision = data.revision;creationURL=null;creationIcon=null;
     $('site-dialog-title').textContent = site ? '编辑网站' : '收藏网站'; $('site-title').value = site?.title || ''; $('site-url').value = site?.url || '';
     $('site-group').replaceChildren(...data.groups.map(g => { const option = node('option','',g.name); option.value = g.id; return option; })); $('site-group').value = site?.groupId || groupId;
@@ -331,13 +333,14 @@ export async function initNavigation({send,toast,onPreferences=()=>{}}) {
     // Keep the native top layer and the underlying folder in this tab.
     captureDialog.showModal();
   });
-  function openGroup(group = null) {
+  function openGroup(group = null,{continueToSite=false}={}) {
     if (!data || busy) return;
-    editingGroup = group; groupRevision = data.revision;
-    $('group-dialog-title').textContent = group ? '编辑分组' : '新建分组'; $('group-name').value = group?.name || '';
-    const removable = group && group.id !== 'default'; $('delete-group-button').hidden = !removable; $('group-delete-hint').hidden = !removable;
-    $('group-delete-hint').textContent = `删除此分组后，其中的网站会移入「${data.groups.find(g => g.id === 'default').name}」。`;
-    $('delete-group-button').textContent = `删除分组并保留网站`; error('group-error',null); showDialog('group-dialog','new-group-button'); $('group-name').focus();
+    createSiteAfterGroup=continueToSite;editingGroup = group; groupRevision = data.revision;
+    $('group-dialog-title').textContent = group ? '编辑分组' : continueToSite?'先创建收藏分组':'新建分组'; $('group-name').value = group?.name || '';
+    const target=group&&data.groups.find(g=>g.id!==group.id),count=group?data.bookmarks.filter(s=>s.groupId===group.id).length:0;
+    $('delete-group-button').hidden=!group;$('group-delete-hint').hidden=!group;
+    $('group-delete-hint').textContent=count?(target?`删除后，${count} 个网站会移入「${target.name}」。`:'最后一个分组还有网站，请先移出或删除网站后再删除分组。'):'此分组为空，删除不会影响其他收藏。';
+    $('delete-group-button').textContent=count?'删除分组并保留网站':'删除空分组';$('delete-group-button').disabled=Boolean(count&&!target); error('group-error',null); showDialog('group-dialog','new-group-button'); $('group-name').focus();
   }
   $('site-dialog').kbCanDismiss=()=>!preparingSite&&!busy;
   $('site-form').addEventListener('submit',async event=>{
@@ -353,15 +356,15 @@ export async function initNavigation({send,toast,onPreferences=()=>{}}) {
       if(await mutate({type:editingSite?'bookmark.update':'bookmark.add',id:editingSite?.id,title:$('site-title').value,url,groupId:$('site-group').value,...(!editingSite?{icon:creationIcon}:{})},'site-error',siteRevision)){$('site-dialog').close();toast('网站已保存');}
     }finally{preparingSite=false;controls.forEach(el=>el.disabled=false);button.textContent='保存网站';}
   });
-  $('group-form').addEventListener('submit',async event => { event.preventDefault(); if (await mutate({type:editingGroup ? 'group.update' : 'group.add',id:editingGroup?.id,name:$('group-name').value},'group-error',groupRevision)) { $('group-dialog').close(); toast('分组已保存'); } });
+  $('group-form').addEventListener('submit',async event => { event.preventDefault();const continueToSite=createSiteAfterGroup; if (await mutate({type:editingGroup ? 'group.update' : 'group.add',id:editingGroup?.id,name:$('group-name').value},'group-error',groupRevision)) { await $('group-dialog').close();createSiteAfterGroup=false;toast('分组已保存');if(continueToSite)openSite(null,data.groups.at(-1).id); } });
   $('delete-site-button').addEventListener('click',async () => { if (await mutate({type:'bookmark.remove',id:editingSite.id},'site-error',siteRevision)) { $('site-dialog').close(); toast('收藏已删除'); } });
-  $('delete-group-button').addEventListener('click',async () => { if (await mutate({type:'group.remove',id:editingGroup.id},'group-error',groupRevision)) { $('group-dialog').close(); toast('分组已删除，网站已保留到默认分组'); } });
+  $('delete-group-button').addEventListener('click',async () => { if (await mutate({type:'group.remove',id:editingGroup.id},'group-error',groupRevision)) { $('group-dialog').close(); toast('分组已删除，其他收藏已保留'); } });
   $('new-group-button').addEventListener('click',() => openGroup()); $('add-site-button').addEventListener('click',() => openSite());
   $('all-groups-button').addEventListener('click',()=>{folders=!folders;$('site-search').value='';render();});
   $('folder-search').addEventListener('input',renderFolder);$('folder-add').addEventListener('click',()=>openSite(null,selected));$('folder-edit').addEventListener('click',()=>openGroup(data.groups.find(g=>g.id===selected)));
   $('folder-dialog').addEventListener('close',()=>{selected='all';});
   $('site-search').addEventListener('input',() => data && render());
-  $('site-empty-action').addEventListener('click',() => { if ($('site-search').value) { $('site-search').value = ''; render(); } else openSite(); });
+  $('site-empty-action').addEventListener('click',() => { if ($('site-search').value) { $('site-search').value = ''; render(); } else if(!data.groups.length)openGroup();else openSite(); });
   for (const [id,key] of [['pref-new-tab','openInNewTab'],['pref-knowledge','showKnowledge'],['pref-compact','compact']]) $(id).addEventListener('change',event => mutate({type:'preferences.update',changes:{[key]:event.target.checked}},'preferences-error'));
   $('show-knowledge-button').addEventListener('click',() => mutate({type:'preferences.update',changes:{showKnowledge:true}},'navigation-error'));
   $('export-sites-button').addEventListener('click',() => {

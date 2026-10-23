@@ -1,0 +1,43 @@
+{
+  "icons": {
+    "sites": 5,
+    "defaultRun": [
+      "updated",
+      "failed",
+      "protected",
+      "protected",
+      "updated"
+    ],
+    "persistence": "reopen makes zero requests",
+    "permission": "Chrome succeeds even when host requests are denied",
+    "custom": "protected by default, replaced only after opt-in",
+    "concurrency": "manual edit wins",
+    "stop": "late results discarded"
+  },
+  "audit": {
+    "sites": 6,
+    "defaultSelected": 0,
+    "statuses": [
+      "ok",
+      "restricted",
+      "httpError",
+      "httpError",
+      "restricted",
+      "ok"
+    ],
+    "delete": "review, cancel, confirm and undo",
+    "persistence": "same report after reload, no automatic scan",
+    "background": "continues after close, explicit stop",
+    "stale": "changed URL cannot be deleted",
+    "icons": "zero lookups"
+  },
+  "drag": {
+    "middle": "insert before third; target stays open",
+    "cancel": "fast pass, Escape, preview exit and header cancellation",
+    "scroll": "target edge scroll and append; homepage stays fixed",
+    "empty": "insert into empty folder",
+    "quick": "immediate drop remains supported, no delayed reopen",
+    "conflict": "new revision preserved",
+    "total": 52
+  }
+}

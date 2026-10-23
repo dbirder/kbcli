@@ -15,7 +15,7 @@ export function bookmarkURL(value) {
 }
 export function validateNavigation(data) {
   if (!data || data.version !== 1 || typeof data.revision !== 'string' || !Array.isArray(data.groups) || !Array.isArray(data.bookmarks) || !data.preferences) fail('收藏数据无法读取，请保留本机数据以便恢复；原数据未被覆盖');
-  if (!data.groups.length || data.groups.length > 100 || data.bookmarks.length > 2000 || !data.groups.some(g => g?.id === 'default')) fail('收藏分组数据无效，原数据未被覆盖');
+  if (data.groups.length > 100 || data.bookmarks.length > 2000) fail('收藏分组数据无效，原数据未被覆盖');
   const ids = new Set(), names = new Set();
   for (const group of data.groups) {
     if (!group || typeof group.id !== 'string' || !group.id || ids.has(group.id)) fail('分组标识无效');
@@ -35,7 +35,7 @@ export function validateNavigation(data) {
 export function createNavigationStore({storage, revision = () => crypto.randomUUID()}) {
   async function read() {
     const saved = (await storage.get('navigation')).navigation;
-    return saved == null ? {version:1, revision:'initial', groups:[{id:'default',name:'常用'}], bookmarks:[], preferences:{openInNewTab:true,showKnowledge:true,compact:false}} : validateNavigation(structuredClone(saved));
+    return saved == null ? {version:1, revision:'initial', groups:[], bookmarks:[], preferences:{openInNewTab:true,showKnowledge:true,compact:false}} : validateNavigation(structuredClone(saved));
   }
   const find = (list, id) => { const item = list.find(x => x.id === id); if (!item) fail('内容已改变，请刷新后重试'); return item; };
   const move = (list, item, direction) => {
@@ -67,10 +67,12 @@ export function createNavigationStore({storage, revision = () => crypto.randomUU
       if (action === 'group.add') { if (data.groups.length >= 100) fail('最多支持 100 个分组'); data.groups.push({id:revision(),name}); }
       else find(data.groups,message.id).name = name;
     } else if (action === 'group.remove') {
-      if (message.id === 'default') fail('常用分组需要保留，可以修改名称');
       find(data.groups,message.id);
-      data.groups = data.groups.filter(g => g.id !== message.id);
-      for (const site of data.bookmarks) if (site.groupId === message.id) site.groupId = 'default';
+      const remaining=data.groups.filter(g=>g.id!==message.id),sites=data.bookmarks.filter(s=>s.groupId===message.id);
+      if(sites.length&&!remaining.length)fail('最后一个分组还有网站，请先移出或删除网站后再删除分组');
+      const target=sites.length?find(remaining,message.targetGroupId||remaining[0].id):null;
+      data.groups=remaining;
+      for(const site of sites)site.groupId=target.id;
     } else if (action === 'group.place') {
       const group = find(data.groups,message.id);
       if (message.beforeId !== null && message.beforeId !== undefined) find(data.groups,message.beforeId);

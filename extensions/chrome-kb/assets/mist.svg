@@ -1,12 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1600" viewBox="0 0 2560 1600">
 <defs>
- <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#102d3b"/><stop offset=".48" stop-color="#4c888d"/><stop offset="1" stop-color="#b0c4b4"/></linearGradient>
+ <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#0d2836"/><stop offset=".48" stop-color="#315e6d"/><stop offset="1" stop-color="#315360"/></linearGradient>
  <radialGradient id="light"><stop stop-color="#d8ded0" stop-opacity=".55"/><stop offset="1" stop-color="#acd0c6" stop-opacity="0"/></radialGradient>
  <linearGradient id="lake" x2="0" y2="1"><stop stop-color="#4d8d8c"/><stop offset="1" stop-color="#092b37"/></linearGradient>
  <linearGradient id="front" x2="0" y2="1"><stop stop-color="#173f43"/><stop offset="1" stop-color="#061d26"/></linearGradient>
- <filter id="mist"><feGaussianBlur stdDeviation="34"/></filter>
+ <filter id="mist"><feGaussianBlur stdDeviation="45"/></filter>
+ <filter id="land-soft"><feGaussianBlur stdDeviation="22"/></filter>
 </defs>
 <path fill="url(#sky)" d="M0 0h2560v1600H0z"/><ellipse fill="url(#light)" cx="1520" cy="430" rx="1050" ry="650"/>
+<g opacity=".48" filter="url(#land-soft)">
 <path fill="#709c99" d="M0 780 130 670 270 706 450 550 580 606 710 510 880 656 1030 592 1230 748 1460 568 1570 614 1720 466 1910 617 2020 578 2240 742 2430 620 2560 700V1400H0Z"/>
 <path fill="#487e7e" d="m0 960 150-166 190 80 185-126 170 70 180-148 240 230 150-110 175 132 200-203 220 73 160-168 200 184 140-58v620H0Z"/>
 <path fill="url(#lake)" d="M0 1005q640-85 1280 15t1280-12v592H0Z"/>
@@ -15,4 +17,5 @@
 <path fill="url(#front)" d="m2560 730-175 161-83 164-188 99-92 158-257 105-135 183h930Z"/>
 <path fill="#0a252c" d="m0 1250 230 99 140 127 287 124H0Z"/>
 <g stroke="#b5cec2" opacity=".14"><path d="M780 1256h690m-400 45h740m-960 92h620m-20 68h400m-850 54h530"/></g>
+</g>
 </svg>

@@ -4,7 +4,7 @@ const KEY='kb-first-paint-background';
 export async function cacheFirstPaintBackground(image,data){
   try {
     const saved=JSON.parse(localStorage.getItem(KEY)||'null');
-    if(saved?.revision===data.revision)return;
+    if(saved?.revision===data.revision&&saved?.assetVersion===2)return;
     const source=image.src;
     await image.decode();
     if(image.src!==source)return;
@@ -16,6 +16,6 @@ export async function cacheFirstPaintBackground(image,data){
     context.drawImage(image,0,0,canvas.width,canvas.height);
     context.filter='none';context.fillStyle=`rgba(3,14,23,${data.dim/100})`;context.fillRect(0,0,canvas.width,canvas.height);
     const preview=canvas.toDataURL('image/webp',.75);
-    if(preview.length<32768)localStorage.setItem(KEY,JSON.stringify({revision:data.revision,image:preview,position:data.position}));
+    if(preview.length<32768)localStorage.setItem(KEY,JSON.stringify({assetVersion:2,revision:data.revision,image:preview,position:data.position}));
   }catch{/* Cache, decode and canvas failures must not affect saved appearance or startup. */}
 }

@@ -1,0 +1,30 @@
+{
+  "layout": {
+    "normal": {
+      "width": 960,
+      "centerError": 0,
+      "cardWidth": 128,
+      "overflow": false
+    },
+    "compact": {
+      "width": 960,
+      "centerError": 0,
+      "cardWidth": 108,
+      "overflow": false
+    },
+    "editing": "homepage group ellipsis, folder toolbar group editor, site ellipsis",
+    "keyboard": "group and website directional sorting without management mode",
+    "many": "18 sites centered; own scrolling",
+    "mobile": "390px no overflow",
+    "management": "both mode buttons removed"
+  },
+  "drag": {
+    "middle": "insert before third; target stays open",
+    "cancel": "fast pass, Escape, preview exit and header cancellation",
+    "scroll": "target edge scroll and append; homepage stays fixed",
+    "empty": "insert into empty folder",
+    "quick": "immediate drop remains supported, no delayed reopen",
+    "conflict": "new revision preserved",
+    "total": 52
+  }
+}

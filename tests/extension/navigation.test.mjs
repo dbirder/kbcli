@@ -1,9 +1,10 @@
+import {legacyNavigation} from './fixtures/legacy-navigation.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {bookmarkURL,createNavigationStore,exportNavigation,MAX_BACKUP_BYTES} from '../../extensions/chrome-kb/navigation.mjs';
 import {createController} from '../../extensions/chrome-kb/controller.mjs';
 function fixture() {
-  const saved = {}; let serial=0;
+  const saved = {navigation:legacyNavigation()}; let serial=0;
   const storage={async get(key){return structuredClone({[key]:saved[key]});},async set(value){Object.assign(saved,structuredClone(value));},async remove(keys){for(const key of [keys].flat())delete saved[key];}};
   const handle=createController({storage,permissions:{},fetcher:()=>{throw Error('Local bookmarks must not access NAS');},revision:()=>`revision-${++serial}`});
   let state;
@@ -18,7 +19,7 @@ test('URL validation rejects executable schemes and embedded credentials',()=>{
   for(const url of ['javascript:alert(1)','data:text/html,abc','file:///etc/passwd','https://user:pass@example.com','https://','   '])assert.throws(()=>bookmarkURL(url));
   assert.equal(bookmarkURL('https://example.com/a#b'),'https://example.com/a#b');
 });
-test('deleting a group keeps its sites in the default group; default cannot be removed',async()=>{
+test('deleting a group keeps sites in an existing group; last populated group is protected',async()=>{
   const f=fixture();await f.read();await f.change('group.add',{name:'工作'});const id=f.state.groups[1].id;
   await f.change('bookmark.add',{title:'文档',url:'https://example.com',groupId:id});
   await f.change('group.remove',{id});assert.equal(f.state.bookmarks[0].groupId,'default');assert.equal(f.state.groups.length,1);

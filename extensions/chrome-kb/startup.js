@@ -10,7 +10,7 @@
   } catch { /* Blocked cache storage must never block the page. */ }
   try {
     const preview = JSON.parse(localStorage.getItem('kb-first-paint-background') || 'null');
-    if (preview && typeof preview.image === 'string' && preview.image.length < 32768 && /^data:image\/webp;base64,[A-Za-z0-9+/]+={0,2}$/.test(preview.image)) {
+    if (preview?.assetVersion === 2 && typeof preview.image === 'string' && preview.image.length < 32768 && /^data:image\/webp;base64,[A-Za-z0-9+/]+={0,2}$/.test(preview.image)) {
       root.style.setProperty('--startup-wallpaper', `url("${preview.image}")`);
       root.style.setProperty('--startup-position', ['center','top','bottom'].includes(preview.position) ? preview.position : 'center');
     }

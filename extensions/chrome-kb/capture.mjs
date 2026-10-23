@@ -3,7 +3,7 @@ import {bookmarkURL} from './navigation.mjs';
 import {imageURL,imagePermissionOrigin} from './bookmark-icon.mjs';
 const uuid=/^[0-9a-f-]{36}$/i;
 export function createCaptureStore({storage,navigation,now=()=>Date.now()}){
- const get=async()=>{const v=(await storage.get('quickCapture')).quickCapture;return v?.version===1?v:{version:1,drafts:[],lastGroup:'default'};};
+ const get=async()=>{const v=(await storage.get('quickCapture')).quickCapture;return v?.version===1?v:{version:1,drafts:[],lastGroup:''};};
  function context(value){if(typeof value!=='string'||!value||value.length>4300)throw new ApiError('MESSAGE_INVALID','收藏草稿上下文无效');return value;}
  return async m=>{
   const s=await get();

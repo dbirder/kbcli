@@ -1,3 +1,4 @@
+import {legacyNavigation} from './fixtures/legacy-navigation.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createController} from '../../extensions/chrome-kb/controller.mjs';
@@ -5,7 +6,7 @@ import {createClient,errorValue} from '../../extensions/chrome-kb/api.mjs';
 const id='50a7f8da-c1b6-4d48-8d7f-c8b51a2523cd',hash='sha256:'+'a'.repeat(64);
 const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
 function fixture() {
-  const data={},calls=[];let serial=0,title='原待办',gate=null,malformed=false;
+  const data={navigation:legacyNavigation()},calls=[];let serial=0,title='原待办',gate=null,malformed=false;
   const storage={async get(key){return structuredClone({[key]:data[key]});},async set(value){Object.assign(data,structuredClone(value));},async remove(keys){for(const key of [keys].flat())delete data[key];}};
   const fetcher=async(url,options)=>{
     calls.push(options.method+' '+new URL(url).pathname);

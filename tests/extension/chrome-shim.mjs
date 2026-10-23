@@ -4,6 +4,9 @@ import {createController} from '/controller.mjs';
 import {errorValue} from '/api.mjs';
 import {fetchCaptureImage} from '/capture.mjs';
 import {createLegacyIconReader} from '/icon-snapshots.mjs';
+// Existing regression scenarios explicitly start with legacy data; empty-state
+// scenarios opt out to exercise real zero-group application defaults.
+if(!new URL(location.href).searchParams.has('empty-groups')&&!localStorage.getItem('kb-test-navigation'))localStorage.setItem('kb-test-navigation',JSON.stringify({version:1,revision:'initial',groups:[{id:'default',name:'常用'}],bookmarks:[],preferences:{openInNewTab:true,showKnowledge:true,compact:false}}));
 const changes=[], grants=new Set();
 const storage={
   async get(key){return {[key]:JSON.parse(localStorage.getItem('kb-test-'+key)||'null')};},

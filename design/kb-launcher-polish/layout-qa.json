@@ -1,0 +1,17 @@
+{
+  "geometry": {
+    "rows": [
+      8,
+      7
+    ],
+    "firstWidth": 140,
+    "preview": "28px",
+    "lastCenter": 782,
+    "center": 782,
+    "text": "rgb(243, 247, 248)"
+  },
+  "tools": "native popover; ArrowDown navigation, Escape, live action and close verified",
+  "palette": "wallpaper text independent of light panel theme; cross-tab choice works",
+  "data": "navigation and wallpaper unchanged",
+  "mobile": "390px three columns; menu fits viewport"
+}

@@ -1,3 +1,4 @@
+import {legacyNavigation} from './fixtures/legacy-navigation.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createController} from '../../extensions/chrome-kb/controller.mjs';
@@ -5,7 +6,7 @@ import {probeSite,auditOrigin,auditRequestURL,AUDIT_LEASE,knownAuditRedirect} fr
 const response=(code=200,body='<title>正常网站</title>',url='https://site.example/')=>{const r=new Response(body,{status:code,headers:{'Content-Type':'text/html'}});Object.defineProperty(r,'url',{value:url});return r;};
 const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
 function fixture({fetcher=async()=>response(),allowed=true}={}){
- let counter=0,clock=1000;const saved={},calls=[];
+ let counter=0,clock=1000;const saved={navigation:legacyNavigation()},calls=[];
  const storage={async get(key){return structuredClone({[key]:saved[key]});},async set(value){Object.assign(saved,structuredClone(value));},async remove(key){delete saved[key];}};
  const create=()=>createController({storage,permissions:{async contains({origins}){return typeof allowed==='function'?allowed(origins):allowed;}},fetcher:async(...args)=>{calls.push(args);return fetcher(...args);},now:()=>clock,revision:()=>`r${++counter}`});let handle=create();
  return {saved,storage,calls,get handle(){return handle;},restart(){handle=create();},advance(ms){clock+=ms;},async seed(count=1){let n=await handle({type:'navigation.get'});for(let i=0;i<count;i++)n=await handle({type:'bookmark.add',revision:n.revision,title:'网站'+i,url:`https://site.example/${i}`,groupId:'default'});return n;},async start(){const n=await handle({type:'navigation.get'});return (await handle({type:'audit.start',revision:n.revision})).job;},async state(){return (await handle({type:'audit.get'})).job;}};

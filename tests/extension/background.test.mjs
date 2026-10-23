@@ -1,10 +1,11 @@
+import {legacyNavigation} from './fixtures/legacy-navigation.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 const hash='sha256:'+'a'.repeat(64),id='50a7f8da-c1b6-4d48-8d7f-c8b51a2523cd';
 const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
 let serial=0;
 async function worker(t,{accessFails=false}={}) {
-  const originalChrome=globalThis.chrome,originalFetch=globalThis.fetch,originalAdd=globalThis.addEventListener,data={},listeners={},calls=[];let block=false;
+  const originalChrome=globalThis.chrome,originalFetch=globalThis.fetch,originalAdd=globalThis.addEventListener,data={navigation:legacyNavigation()},listeners={},calls=[];let block=false;
   const started=deferred(),release=deferred();
   t.after(()=>{globalThis.chrome=originalChrome;globalThis.fetch=originalFetch;globalThis.addEventListener=originalAdd;release.resolve();});
   globalThis.addEventListener=(type,handler)=>{listeners[type]=handler;};

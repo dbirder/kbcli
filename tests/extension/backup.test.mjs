@@ -1,9 +1,10 @@
+import {legacyNavigation} from './fixtures/legacy-navigation.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createController} from '../../extensions/chrome-kb/controller.mjs';
 const device='6cf5fae0-9a6e-42d1-8a3e-2186f10a5488';
 function fixture(){
- const data={},calls=[],saved=new Map();let online=true,clock=100000,serial=0,ambiguous=false,gate=null,quota=false,undoGate=null;
+ const data={navigation:legacyNavigation()},calls=[],saved=new Map();let online=true,clock=100000,serial=0,ambiguous=false,gate=null,quota=false,undoGate=null;
  const storage={async get(key){return structuredClone({[key]:data[key]});},async set(value){if(value.backupUndo&&undoGate){undoGate.started();await undoGate.promise;}if(quota&&value.backupUndo)throw Error('quota');Object.assign(data,structuredClone(value));},async remove(keys){for(const key of [keys].flat())delete data[key];}};
  const permissions={async contains(){return true;},async remove(){}};
  const fetcher=async(url,options)=>{calls.push({url,options});if(!online)throw Error('offline');if(url.endsWith('/status'))return Response.json({ok:true,role:'human'});

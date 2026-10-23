@@ -159,3 +159,110 @@ input[aria-invalid=true]:focus,input:user-invalid:focus,.select-trigger[aria-inv
  .folder-grid,.compact-sites .folder-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 6px}
  .folder-button,.compact-sites .folder-button{padding:12px 4px}
 }
+
+/* Quiet launcher: a single floating palette, independent of panel color scheme. */
+:root{--floating-ink:#f3f7f8;--floating-muted:#d1e0e4;--floating-surface:rgb(16 40 52 / .48);--floating-line:rgb(229 244 248 / .23);--folder-glass:rgb(222 240 243 / .29)}
+:root[data-wallpaper-text=dark]{--floating-ink:#203443;--floating-muted:#405967;--floating-surface:rgb(247 251 253 / .74);--floating-line:rgb(40 68 82 / .22);--folder-glass:rgb(242 248 250 / .63)}
+#home-main{max-width:1440px;padding-inline:clamp(20px,4vw,64px)}
+.hero{height:246px;flex-basis:246px;grid-template-columns:1fr;grid-template-rows:66px 20px 52px;gap:10px;justify-items:center;align-content:center;color:var(--floating-ink)}
+.hero::before{display:none}
+.clock{grid-column:1;grid-row:1;font-size:60px;font-weight:300;letter-spacing:-2px;color:var(--floating-ink)}
+.date-label{grid-column:1;grid-row:2;font-size:12px;text-align:center;color:var(--floating-muted);align-self:center}
+.greeting{display:none}
+.home-search{grid-column:1;grid-row:3;width:min(620px,calc(100dvw - 40px));height:50px;margin:8px auto 0;background:var(--floating-surface);border-color:var(--floating-line);color:var(--floating-ink);backdrop-filter:blur(12px);box-shadow:0 6px 24px rgb(0 18 28 / .06)}
+.home-search:focus-within{background:var(--floating-surface);border-color:var(--floating-muted)}
+.home-search input{color:var(--floating-ink)}
+.home-search input::placeholder,.home-search .search-symbol,.home-search button{color:var(--floating-muted)}
+.home-search button{border-color:var(--floating-line);font-size:11px}
+.home-search button:hover{color:var(--floating-ink)}
+.collection-summary{min-height:44px;justify-content:flex-end;border:0;padding:0;margin-bottom:12px}
+.collection-summary>div:first-child{display:none}
+.collection-actions{max-width:none;gap:8px}
+.collection-actions>.text-link{color:var(--floating-muted);font-size:12px}
+.collection-actions>.text-link:hover{color:var(--floating-ink);background:rgb(229 245 249 / .12)}
+.collection-actions>.glass-button{background:rgb(220 242 246 / .17);border:1px solid var(--floating-line);color:var(--floating-ink);font-weight:500;font-size:12px}
+.collection-tools-trigger{font-size:22px!important;min-width:36px;padding:4px 8px}
+.collection-tools-popover{position:fixed;inset:auto;margin:0;padding:7px;max-height:calc(100dvh - 24px);overflow:auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 36px rgb(0 12 24 / .22)}
+.collection-tools-popover:popover-open{display:flex;flex-direction:column;gap:3px}
+.collection-tools-popover>button{width:100%;padding:12px;text-align:left;font-size:12px;border-radius:7px;color:var(--ink)}
+.collection-tools-popover>button:hover{background:var(--raised)}
+.folder-grid,.compact-sites .folder-grid{display:flex;flex-wrap:wrap;justify-content:var(--collection-justify);gap:20px 18px}
+.folder-grid>.folder-tile{flex:0 0 140px;min-height:162px;text-align:var(--collection-text);border-color:transparent;background:transparent}
+.folder-tile:hover{background:transparent;border-color:transparent}
+.folder-button,.compact-sites .folder-button{align-items:var(--collection-items);padding:12px 10px;text-align:var(--collection-text);background:transparent}
+.folder-preview{width:96px;height:96px;padding:14px;grid-template-columns:repeat(3,18px);grid-template-rows:repeat(3,18px);gap:6px;border-radius:28px;border:1px solid var(--floating-line);background:var(--folder-glass)}
+.folder-preview::before{display:none}
+.folder-preview>.mini-icon,.folder-preview>.mini-icon:nth-child(n+7){display:flex;align-items:center;justify-content:center;text-align:center;width:18px;height:18px;min-width:18px;min-height:18px;border-radius:5px;font-size:9px}
+.folder-button:hover .folder-preview{background:var(--folder-glass);border-color:var(--floating-muted);box-shadow:0 5px 18px rgb(0 18 28 / .08);transform:none}
+.folder-label{font-size:14px;font-weight:500;margin-top:12px;color:var(--floating-ink);line-height:1.5}
+.folder-size{font-size:10px;color:var(--floating-muted);opacity:0;margin-top:3px}
+.folder-tile:hover .folder-size,.folder-tile:has(:focus-visible) .folder-size{opacity:1}
+.folder-blank{grid-area:1/1/4/4;color:var(--floating-muted);display:grid;place-items:center}
+.folder-blank svg{width:28px;height:28px}
+.folder-tile>.group-controls,.folder-tile>.drag-handle{background:var(--floating-surface);color:var(--floating-ink)}
+.compact-sites .folder-grid>.folder-tile{flex-basis:116px;min-height:145px}
+.compact-sites .folder-preview{width:84px;height:84px;padding:12px;grid-template-columns:repeat(3,16px);grid-template-rows:repeat(3,16px);gap:5px;border-radius:24px}
+.compact-sites .folder-preview>.mini-icon{width:16px;height:16px;min-width:16px;min-height:16px;font-size:8px}
+.compact-sites .folder-label{font-size:13px;margin-top:11px}
+.all-sites .site-copy strong,.all-sites .group-heading h2{color:var(--floating-ink)}
+.all-sites .site-host{color:var(--floating-muted)}
+@media(hover:none){.folder-size{opacity:.85}}
+@media(max-width:760px){
+ #home-main{padding-inline:18px}
+ .hero{height:222px;flex-basis:222px;grid-template-rows:56px 18px 48px;gap:8px}
+ .clock{font-size:48px}.date-label{font-size:11px}.home-search{height:48px}
+ .collection-summary{min-height:42px;margin-bottom:10px}.collection-actions{max-width:none;gap:5px}
+ .folder-grid,.compact-sites .folder-grid{gap:16px 6px}
+ .folder-grid>.folder-tile,.compact-sites .folder-grid>.folder-tile{flex-basis:calc((100% - 12px)/3);min-width:0;min-height:136px}
+ .folder-button,.compact-sites .folder-button{padding:10px 4px}
+ .folder-preview,.compact-sites .folder-preview{width:76px;height:76px;padding:11px;grid-template-columns:repeat(3,14px);grid-template-rows:repeat(3,14px);gap:5px;border-radius:22px}
+ .folder-preview>.mini-icon,.compact-sites .folder-preview>.mini-icon{width:14px;height:14px;min-width:14px;min-height:14px;font-size:8px}
+ .folder-label,.compact-sites .folder-label{font-size:12px;margin-top:10px}
+}
+@media(forced-colors:active){.folder-label,.folder-size,.clock,.date-label,.collection-actions>.text-link,.collection-actions>.glass-button{color:CanvasText}.folder-preview,.home-search{background:Canvas;border-color:CanvasText}.folder-button:hover .folder-preview{border-color:Highlight}}
+.site-empty,.site-empty h2,.site-empty p{color:var(--floating-ink)}
+
+/* Spacious folder workspace: fixed controls, balanced sparse content, local scrolling. */
+#folder-dialog{width:min(960px,calc(100dvw - 64px));height:min(740px,calc(100dvh - 112px));max-block-size:calc(100dvh - 112px);padding:24px 28px 18px;border-radius:24px;box-shadow:0 28px 90px rgb(0 12 24 / .24)}
+#folder-dialog>.dialog-heading{margin:0 0 18px;min-height:42px;align-items:center}
+#folder-dialog>.dialog-heading>div{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 12px;min-width:0}
+#folder-dialog .dialog-kicker{display:none}
+#folder-title{font-size:24px;line-height:1.45;overflow-wrap:anywhere}
+#folder-count{font-size:12px;line-height:1.5;white-space:nowrap}
+#folder-dialog .close-button{width:40px;min-width:40px;height:40px;flex:none;border-radius:10px}
+#folder-dialog .close-button:hover{background:var(--raised)}
+#folder-dialog>.folder-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;margin:0 0 16px;align-items:center}
+#folder-dialog .folder-toolbar .search{min-width:0;width:auto;height:46px;border-radius:12px}
+#folder-dialog .folder-toolbar .search input{font-size:13px;min-width:0}
+#folder-add{height:44px;margin:0;padding:10px 16px;border-radius:10px;font-size:12px;font-weight:500}
+#folder-edit{width:36px;min-width:36px;height:44px;margin:0;border-radius:10px;color:var(--muted)}
+#folder-edit:hover{background:var(--raised);color:var(--ink)}
+#folder-scroll{display:flex;flex-direction:column;flex:1;min-height:0;padding:8px 6px;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable both-edges}
+#folder-sites{flex:none;margin-block:auto;width:100%;padding-block:18px}
+#folder-sites:empty{display:none}
+#folder-dialog .site-grid{grid-template-columns:repeat(auto-fit,128px);gap:20px 16px;justify-content:var(--collection-justify)}
+#folder-dialog .site-card{min-height:142px;border-radius:14px}
+#folder-dialog .site-link{min-height:142px;padding:16px 8px;gap:14px;border-radius:14px}
+#folder-dialog .site-icon{width:64px;height:64px;flex-basis:64px;border-radius:18px}
+#folder-dialog .site-copy strong{font-size:13px;line-height:1.55}
+.compact-sites #folder-dialog .site-grid{grid-template-columns:repeat(auto-fit,108px);gap:16px 12px}
+.compact-sites #folder-dialog .site-card,.compact-sites #folder-dialog .site-link{min-height:122px}
+.compact-sites #folder-dialog .site-link{padding:14px 6px;gap:12px}
+.compact-sites #folder-dialog .site-icon{width:48px;height:48px;flex-basis:48px;border-radius:14px}
+.compact-sites #folder-dialog .site-copy strong{font-size:12px}
+#folder-drag-hint{flex:none;border-top:1px solid var(--line);padding-top:12px;margin:12px 0 0;font-size:11px;line-height:1.6;text-align:center;color:var(--faint)}
+#folder-empty{margin:auto;padding:40px 20px;text-align:center;font-size:13px;line-height:1.8;color:var(--muted)}
+@media(max-width:760px){
+ #folder-dialog{width:calc(100dvw - 24px);height:calc(100dvh - 100px);max-block-size:calc(100dvh - 100px);padding:20px 18px 14px;margin:auto auto 74px;border-radius:20px}
+ #folder-dialog>.dialog-heading{margin-bottom:14px}#folder-title{font-size:21px}#folder-count{font-size:11px}
+ #folder-dialog>.folder-toolbar{gap:7px;margin-bottom:10px}
+ #folder-dialog .folder-toolbar .search{height:44px}
+ #folder-dialog .folder-toolbar .search input{font-size:12px}
+ #folder-add{font-size:11px;padding-inline:10px}#folder-edit{min-width:30px;width:30px}
+ #folder-dialog .site-grid,.compact-sites #folder-dialog .site-grid{grid-template-columns:repeat(auto-fit,90px);gap:12px 8px}
+ #folder-dialog .site-icon,.compact-sites #folder-dialog .site-icon{width:48px;height:48px;flex-basis:48px;border-radius:14px}
+ #folder-dialog .site-link,.compact-sites #folder-dialog .site-link,#folder-dialog .site-card,.compact-sites #folder-dialog .site-card{min-height:114px}
+ #folder-dialog .site-link,.compact-sites #folder-dialog .site-link{padding:12px 5px;gap:10px}
+ #folder-dialog .site-copy strong{font-size:12px}
+ #folder-drag-hint{font-size:10px;padding-top:10px;margin-top:10px}
+}

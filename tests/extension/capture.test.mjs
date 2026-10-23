@@ -1,3 +1,4 @@
+import {legacyNavigation} from './fixtures/legacy-navigation.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createController} from '../../extensions/chrome-kb/controller.mjs';
@@ -5,7 +6,7 @@ import {fetchCaptureImage} from '../../extensions/chrome-kb/capture.mjs';
 import {validateBookmarkIcon} from '../../extensions/chrome-kb/bookmark-icon.mjs';
 import {exportNavigation,createNavigationStore} from '../../extensions/chrome-kb/navigation.mjs';
 const op='c0bd9258-17b1-41aa-a21f-3677494af6f2',text={mode:'text',text:'文档',color:'#2c756a'},image={mode:'image',dataURL:'data:image/webp;base64,'+btoa('RIFF0000WEBPtest'),sourceURL:'https://images.example/logo.webp'};
-function fixture(){const data={};let serial=0,failCleanup=false;const storage={async get(key){return structuredClone({[key]:data[key]});},async set(value){if(failCleanup&&value.quickCapture){failCleanup=false;throw Error('test quota');}Object.assign(data,structuredClone(value));},async remove(){}};const make=()=>createController({storage,permissions:{},revision:()=>`r${++serial}`});let handle=make();return {data,storage,send:m=>handle(m),restart(){handle=make();},failCleanup(){failCleanup=true;}};}
+function fixture(){const data={navigation:legacyNavigation()};let serial=0,failCleanup=false;const storage={async get(key){return structuredClone({[key]:data[key]});},async set(value){if(failCleanup&&value.quickCapture){failCleanup=false;throw Error('test quota');}Object.assign(data,structuredClone(value));},async remove(){}};const make=()=>createController({storage,permissions:{},revision:()=>`r${++serial}`});let handle=make();return {data,storage,send:m=>handle(m),restart(){handle=make();},failCleanup(){failCleanup=true;}};}
 const draft=(sequence,title='草稿')=>({operationId:op,sequence,title});
 async function save(f,{id=null,icon=text,url='https://example.org/docs?q=1#part',title='文档',revision}={}){return f.send({type:'capture.save',context:'91|page',operationId:op,revision:revision??(await f.send({type:'navigation.get'})).revision,bookmark:{id,title,url,groupId:'default',icon}});}
 test('drafts survive popup and worker restart, are scoped, bounded and ignore out-of-order edits',async()=>{
@@ -49,7 +50,7 @@ test('legacy duplicates in different groups can still be edited without creating
 test('excessive embedded icon totals reject an import atomically',async()=>{
  const f=fixture(),n=await f.send({type:'navigation.get'}),dataURL='data:image/webp;base64,'+btoa('RIFF0000WEBP'+'x'.repeat(24000));
  const backup={format:'kb-workspace-bookmarks',version:1,groups:n.groups,bookmarks:Array.from({length:40},(_,i)=>({id:'test'+i,title:'图标',url:'https://example.org/'+i,groupId:'default',icon:{mode:'image',dataURL}}))};
- await assert.rejects(f.send({type:'navigation.import',revision:n.revision,backup}),{code:'NAVIGATION_INVALID'});assert.equal(f.data.navigation,undefined);
+ await assert.rejects(f.send({type:'navigation.import',revision:n.revision,backup}),{code:'NAVIGATION_INVALID'});assert.deepEqual(f.data.navigation,legacyNavigation());
 });
 
 test('Chrome favicon without Content-Type is accepted by binary signature, external responses remain strict',async()=>{

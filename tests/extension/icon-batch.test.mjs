@@ -1,3 +1,4 @@
+import {legacyNavigation} from './fixtures/legacy-navigation.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createController} from '../../extensions/chrome-kb/controller.mjs';
@@ -5,7 +6,7 @@ import {createBatchIconFetcher,isCustomIcon,ICON_BATCH_LEASE} from '../../extens
 import {fallbackBookmarkIcon} from '../../extensions/chrome-kb/bookmark-icon.mjs';
 const dataURL='data:image/webp;base64,'+btoa('RIFF0000WEBPtest'),updated={mode:'auto',dataURL},result={icon:updated,source:'TEST ONLY'};
 const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
-function fixture(fetcher=async()=>result){let serial=0,clock=1000;const data={},calls=[];
+function fixture(fetcher=async()=>result){let serial=0,clock=1000;const data={navigation:legacyNavigation()},calls=[];
  const storage={async get(key){return structuredClone({[key]:data[key]});},async set(v){Object.assign(data,structuredClone(v));},async remove(key){delete data[key];}};
  const make=()=>createController({storage,permissions:{},fetchBatchIcon:async url=>{calls.push(url);return fetcher(url);},now:()=>clock,revision:()=>`r${++serial}`});let handle=make();
  return {data,calls,storage,get handle(){return handle;},restart(){handle=make();},advance(ms){clock+=ms;},async seed(count=1){let n=await handle({type:'navigation.get'});for(let i=0;i<count;i++)n=await handle({type:'bookmark.add',revision:n.revision,title:'网站'+i,url:`https://site${i}.example/private?token=secret#fragment`,groupId:'default'});return n;},async start(replaceCustom=false){const n=await handle({type:'navigation.get'});return (await handle({type:'icons.start',revision:n.revision,replaceCustom})).job;}};

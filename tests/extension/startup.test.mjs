@@ -9,7 +9,7 @@ function boot(values={},blocked=false){
  runInNewContext(source,context);return {dataset,style,meta,marks,finish:context.window.kbStartup.finish,timeout:()=>timeout(),cleared:()=>cleared};
 }
 test('first paint uses saved scheme and validated local preview before modules',()=>{
- const b=boot({'kb-first-paint-scheme':'light','kb-first-paint-background':JSON.stringify({image:'data:image/webp;base64,UklGRg==',position:'top'})});
+ const b=boot({'kb-first-paint-scheme':'light','kb-first-paint-background':JSON.stringify({assetVersion:2,image:'data:image/webp;base64,UklGRg==',position:'top'})});
  assert.equal(b.dataset.colorScheme,'light');assert.equal(b.meta.content,'light');assert.equal(b.dataset.startup,'pending');assert.equal(b.style.get('--startup-position'),'top');assert.match(b.style.get('--startup-wallpaper'),/^url\("data:image\/webp/);
  b.finish();b.timeout();assert.equal(b.dataset.startup,undefined);assert.equal(b.cleared(),1);assert.deepEqual(b.marks,['kb:first-view-ready']);
 });

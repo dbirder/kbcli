@@ -1,0 +1,169 @@
+{
+  "normal": [
+    {
+      "text": "编",
+      "width": 18,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "深",
+      "width": 18,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "小",
+      "width": 18,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "I",
+      "width": 18,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "W",
+      "width": 18,
+      "dx": 0.0078125,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "AI",
+      "width": 18,
+      "dx": 0.0078125,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "资料",
+      "width": 18,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    }
+  ],
+  "compact": [
+    {
+      "text": "编",
+      "width": 16,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "深",
+      "width": 16,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "小",
+      "width": 16,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "I",
+      "width": 16,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "W",
+      "width": 16,
+      "dx": 0.0078125,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "AI",
+      "width": 16,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "资料",
+      "width": 16,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    }
+  ],
+  "mobile": [
+    {
+      "text": "编",
+      "width": 14,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "深",
+      "width": 14,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "小",
+      "width": 14,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "I",
+      "width": 14,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "W",
+      "width": 14,
+      "dx": 0.0078125,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "AI",
+      "width": 14,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    },
+    {
+      "text": "资料",
+      "width": 14,
+      "dx": 0,
+      "dy": 0,
+      "justify": "center"
+    }
+  ],
+  "images": [
+    {
+      "position": "absolute",
+      "w": 14,
+      "parent": 14,
+      "complete": true
+    },
+    {
+      "position": "absolute",
+      "w": 14,
+      "parent": 14,
+      "complete": true
+    }
+  ]
+}

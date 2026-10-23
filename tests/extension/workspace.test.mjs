@@ -1,3 +1,4 @@
+import {legacyNavigation} from './fixtures/legacy-navigation.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createController} from '../../extensions/chrome-kb/controller.mjs';
@@ -21,7 +22,7 @@ function backend(){
  };
  return {fetcher,versions,backups,calls,get head(){return clone(head);},set lose(v){lose=v;},set loseBackup(v){loseBackup=v;},set fork(v){fork=v;},blockBackup(){let resolve,started;const promise=new Promise(r=>resolve=r),begin=new Promise(r=>started=r);gate={kind:'backup',promise,started};return {resolve,begin};}};
 }
-function device(server){const data={};let online=true,clock=100000,quota=false;
+function device(server){const data={navigation:legacyNavigation()};let online=true,clock=100000,quota=false;
  const storage={async get(key){return clone({[key]:data[key]});},async set(values){if(quota&&values.navigation&&values.workspace)throw Error('quota failure');Object.assign(data,clone(values));},async remove(keys){for(const key of [keys].flat())delete data[key];}};
  const make=()=>createController({storage,permissions:{async contains(){return true;},async remove(){}},now:()=>clock,fetcher:async(...args)=>{if(!online)throw Error('offline');return server.fetcher(...args);}});let handle=make();
  return {data,async send(m){return handle(m);},async tick(){return handle.workspaceTick();},async connect(){return handle({type:'connect',server:'http://nas.test',token:'never-backup-this-token'});},restart(){handle=make();},advance(){clock+=2000000;},set online(v){online=v;},set quota(v){quota=v;}};
